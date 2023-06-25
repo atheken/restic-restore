@@ -1,5 +1,5 @@
 FROM mcr.microsoft.com/devcontainers/base:alpine-3.18
-RUN sudo apk add -u go
+RUN sudo apk add -u go restic
 ENV GOPATH="$HOME/go"
 ENV PATH="$GOPATH/bin:$PATH"
 RUN go install -v golang.org/x/tools/gopls@latest

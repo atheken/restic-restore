@@ -11,6 +11,7 @@ services:
     volumes:
       - ../src/restic-restore:/src/
       - ../configs:/configs
+      - /tmp:/tmp
     working_dir: /src
     restart: unless-stopped
     ports:

@@ -9,7 +9,8 @@ export default defineConfig({
 				target: 'http://gow:8888',
 				changeOrigin: true,
 		  	}
-		}
+		},
+		base: "/app"
 	},
 	plugins: [sveltekit()]
 });

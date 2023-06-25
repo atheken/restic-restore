@@ -1,2 +1,19 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+    import { fetchJson } from "../lib/Helpers";
+    import type { Repo, RepoList } from "../lib/ApiModels";
+    import { onMount } from "svelte";
+
+    let repos: Repo[] = [];
+
+    onMount(async () => {
+        repos = (await fetchJson<RepoList>("../api/repos")).repos;
+    });
+</script>
+
+The following repos are defined:
+
+<ul>
+    {#each repos as r}
+        <li><a href="./{r.Id}">{r.Id}</a></li>
+    {/each}
+</ul>

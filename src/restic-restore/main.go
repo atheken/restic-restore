@@ -58,7 +58,7 @@ func setupRouter() *gin.Engine {
 	})
 
 	r.GET("/api/repo/:repoid", func(c *gin.Context) {
-		c.JSON(200, launchRestic[model.Snapshot](config_path+"/"+c.Param("repoid"), "", "snapshots", "--json"))
+		c.JSON(200, launchRestic[model.Snapshot](config_path+"/"+c.Param("repoid"), "", "-v", "snapshots", "--json"))
 	})
 
 	r.GET("/api/snapshot/:repoid/:snapshotid", func(c *gin.Context) {
@@ -99,8 +99,6 @@ func launchRestic[R any](configPath string, password string, args ...string) []R
 		cmd.Env = append(cmd.Env, line)
 	}
 
-	log.Print(cmd.Env)
-
 	// if a password was provided, specify it as an env var, too.
 	if password != "" {
 		cmd.Env = append(cmd.Env, "RESTIC_PASSWORD="+password)
@@ -119,8 +117,13 @@ func launchRestic[R any](configPath string, password string, args ...string) []R
 
 	for scan.Scan() {
 		var record R
-		json.Unmarshal(scan.Bytes(), &record)
-		retval = append(retval, record)
+		err = json.Unmarshal(scan.Bytes(), &record)
+		if err != nil {
+			log.Print(err)
+		} else {
+			retval = append(retval, record)
+			log.Print(scan.Text())
+		}
 	}
 
 	err = cmd.Wait()

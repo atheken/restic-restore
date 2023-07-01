@@ -10,7 +10,9 @@ app.get("/", async (_, res) => {
 
 let port = parseInt(process.env?.HTTP_PORT || "8888")
 
-app.listen(port);
+app.listen(port, ()=>{
+    console.log(`Listening on port: ${port}`)
+});
 
 //TODO: mount the static assets from svelte kit into the /ui path.
 

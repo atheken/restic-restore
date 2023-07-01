@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx tsc",
     "watch": "npx tsc --watch",
-    "serve": "npx tsc run --watch index"
+    "serve": "npx tsx ."
   },
   "author": "",
   "license": "ISC",

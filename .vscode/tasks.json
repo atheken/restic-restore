@@ -1,21 +1,35 @@
 {
-	"version": "2.0.0",
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug TypeScript Server",
+			"preLaunchTask": "build",
+			"runtimeArgs": [
+				"./dist/index.js"
+			], // Path to the compiled JavaScript server file
+			"cwd": "${workspaceFolder}/src/restic-restore",
+			"protocol": "inspector",
+			"outFiles": [
+				"./dist/**/*.js" // Path to the compiled JavaScript files
+			],
+			"sourceMaps": true
+		}
+	],
 	"tasks": [
 		{
-			"type": "go",
-			"label": "go: build package",
-			"options": {
-				"cwd": "${workspaceFolder}/src/restic-restore"
-			},
-			"command": "build",
+			"type": "shell",
+			"label": "tsc: build",
+			"command": "npx",
 			"args": [
+				"tsx",
+				"${workspaceFolder}/src/restic-restore/"
 			],
-			"problemMatcher": [
-				"$go"
-			],
-			
-			"group": "build",
-			"detail": "build restic-restore"
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		}
 	]
 }

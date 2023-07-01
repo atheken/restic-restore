@@ -1,3 +1,4 @@
 node_modules/
 configs/
 src/restic-restore/restic-restore
+dist/

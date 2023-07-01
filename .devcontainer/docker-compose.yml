@@ -5,12 +5,3 @@ services:
     command: sleep infinity
     volumes:
       - ..:/data
-  vite:
-    build: ./vite
-    container_name: vite-watch
-    command: npm run watch
-    volumes:
-      - ../src/ui:/src
-    restart: unless-stopped
-    ports:
-      - 5173:5173

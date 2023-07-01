@@ -1,8 +1,20 @@
-import express from "express"
 import Restic from "./models/restic"
 import { randomUUID } from "crypto"
+import express from "express";
+import { createServer as createViteServer } from 'vite'
 
 let app = express()
+
+// let vite = await createViteServer({
+//     root : "../ui/",
+//     server : {
+//         middlewareMode : true
+//     },
+//     appType : "custom"
+    
+//     });
+
+// app.use("/app/*", vite.middlewares)
 
 app.get("/", async (_, res) => {
     res.redirect("/app")

@@ -15,7 +15,7 @@
 				"bradlc.vscode-tailwindcss"
 			]
 		}
-	},
+	}
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},

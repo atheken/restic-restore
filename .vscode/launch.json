@@ -10,6 +10,7 @@
             "name": "Launch API",
             "runtimeExecutable": "tsx",
             "runtimeArgs": [
+                "--watch",
                 "."
             ],
             "cwd": "${workspaceFolder}/src/restic-restore",

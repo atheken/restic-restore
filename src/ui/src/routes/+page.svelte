@@ -6,7 +6,7 @@
     let repos: Repo[] = [];
 
     onMount(async () => {
-        repos = (await fetchJson<RepoList>("../api/repos")).repos;
+        repos = await fetchJson<Repo[]>("/api/repos");
     });
 </script>
 

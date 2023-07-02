@@ -4,5 +4,5 @@ services:
     build: ./main
     command: sleep infinity
     volumes:
-      - ..:/data
-      - ./configs:/configs
+      - ../:/data
+      - ../configs:/configs

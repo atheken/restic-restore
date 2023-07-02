@@ -4,10 +4,6 @@ import express from "express";
 
 let app = express()
 
-app.get("/", async (_, res) => {
-     res.redirect("/app")
-})
-
 let port = parseInt(process.env?.HTTP_PORT || "8888")
 
 app.listen(port, ()=>{

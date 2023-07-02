@@ -1,4 +1,12 @@
 node_modules/
 configs/
-src/restic-restore/restic-restore
 dist/
+.DS_Store
+build/
+.svelte-kit/
+/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

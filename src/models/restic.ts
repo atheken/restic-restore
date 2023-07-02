@@ -1,8 +1,8 @@
-import { Stream } from "stream";
 import type Snapshot from "./snapshot"
 import type SnapshotEntry from "./snapshotEntry"
 import fs from "fs";
-import Repo from "./repo";
+import type Repo from "./repo";
+import type { Stream } from "stream";
 
 export default class Restic {
     private static basepath = process.env?.CONFIG_PATH || "/configs"    

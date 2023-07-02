@@ -1,16 +1,10 @@
-import { sveltekit } from '@sveltejs/kit/vite';
+import sveltekit from "@sveltejs/adapter-auto"
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+	root : "./",
 	server : {
-		host : '0.0.0.0',
-		proxy: {
-			'/api': {
-				target: 'http://gow:8888',
-				changeOrigin: true,
-		  	}
-		},
-		base: "/app"
+		
 	},
 	plugins: [sveltekit()]
 });

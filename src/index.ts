@@ -5,16 +5,22 @@ import { createServer as createViteServer } from 'vite'
 
 let app = express()
 
-// let vite = await createViteServer({
-//     root : "../ui/",
-//     server : {
-//         middlewareMode : true
-//     },
-//     appType : "custom"
-    
-//     });
+try{
+    let vite = await createViteServer({
+        root: "./ui",
+        server : {
+            base: "/app",
+            middlewareMode : true,
+        },
+        appType : "custom"
+    })
 
-// app.use("/app/*", vite.middlewares)
+   // app.use("/app", vite.middlewares)
+
+}catch(err){
+    console.error(err);
+}
+//TODO: mount the static assets from svelte kit into the /ui path.
 
 app.get("/", async (_, res) => {
     res.redirect("/app")
@@ -25,8 +31,6 @@ let port = parseInt(process.env?.HTTP_PORT || "8888")
 app.listen(port, ()=>{
     console.log(`Listening on port: ${port}`)
 });
-
-//TODO: mount the static assets from svelte kit into the /ui path.
 
 app.use(async (_, req,res,next)=>{
     try{

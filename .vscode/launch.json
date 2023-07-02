@@ -7,19 +7,15 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch API",
+            "name": "Debug Server",
             "runtimeExecutable": "tsx",
             "runtimeArgs": [
                 "--watch",
                 "."
             ],
-            "cwd": "${workspaceFolder}/src/restic-restore",
+            "cwd": "${workspaceFolder}/src/",
             "skipFiles": [
                 "<node_internals>/**"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/src/restic-restore/**/*.js",
-                "${workspaceFolder}/src/restic-restore/**/*.ts"
             ]
         }
     ]

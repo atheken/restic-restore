@@ -1,10 +1,9 @@
 import sveltekit from "@sveltejs/adapter-auto"
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite"
 
 export default defineConfig({
-	root : "./",
-	server : {
-		
+	server: {
+		host: "0.0.0.0"
 	},
 	plugins: [sveltekit()]
 });

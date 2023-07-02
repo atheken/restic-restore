@@ -5,3 +5,4 @@ services:
     command: sleep infinity
     volumes:
       - ..:/data
+      - ./configs:/configs

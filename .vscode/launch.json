@@ -13,9 +13,28 @@
                 "--watch",
                 "."
             ],
-            "cwd": "${workspaceFolder}/src/",
+            "cwd": "${workspaceFolder}/src/api",
             "skipFiles": [
                 "<node_internals>/**"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug App",
+            "runtimeExecutable": "vite",
+            "cwd": "${workspaceFolder}/src/ui",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug All",
+            "configurations": [
+                "Debug Server",
+                "Debug App"
             ]
         }
     ]

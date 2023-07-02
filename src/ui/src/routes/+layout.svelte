@@ -2,8 +2,8 @@
     import "../app.css";
     import Header from "../lib/Header.svelte";
     const ssr = false;
-    const prerender = false;
-    const trailingslash = "always";
+    export const prerender = false;
+    export const trailingSlash = "always";
 </script>
 
 <div class="container mx-auto">

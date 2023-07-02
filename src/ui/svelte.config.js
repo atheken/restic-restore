@@ -14,7 +14,7 @@ const config = {
 		paths: {
 			base: '/app'
 		}
-	}
+	},
 };
 
 export default config;

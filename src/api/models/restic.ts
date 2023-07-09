@@ -1,10 +1,10 @@
 import type Snapshot from "./snapshot";
-import type SnapshotEntry from "./snapshotEntry";
 import fs from "fs";
 import type Repo from "./repo";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { Stream } from "stream";
+import FileResult from "./fileResult";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
@@ -39,49 +39,70 @@ export default class Restic {
     return env;
   }
 
-  private async listSnapshots(
-    snapshotId: string | null = null
-  ): Promise<Snapshot[]> {
+  private async queryRestic<T>(
+    command: "ls" | "snapshots",
+    snapshotId: string | "" = "",
+    args: string | "" = ""
+  ): Promise<T[]> {
     try {
       let pexec = promisify(exec);
 
       let env = await this.loadConfig();
 
       let { stderr, stdout } = await pexec(
-        `restic snapshots ${
-          snapshotId || ""
-        } --json --no-lock -o s3.connections=50 -o b2.connections=50`,
+        `restic ${command} ${snapshotId} ${args} --json --no-lock -o s3.connections=100 -o b2.connections=100`,
         {
           env,
         }
       );
-      return JSON.parse(stdout);
+      // this is a bit of a hack because the output from the
+      // restic commands is not normalized to
+      // line-oriented or object-oriented, so we sniff it first.
+      if (stdout.startsWith("[")) {
+        return JSON.parse(stdout);
+      } else {
+        return stdout
+          .split("\n")
+          .filter((k) => k.trim() != "")
+          .map((f) => JSON.parse(f));
+      }
     } catch (err) {
       throw err;
     }
   }
 
   async ListSnapshots(): Promise<Snapshot[]> {
-    return await this.listSnapshots();
+    return await this.queryRestic<Snapshot>("snapshots");
   }
 
   async Snapshot(snapshotid: string): Promise<Snapshot> {
-    return (await this.listSnapshots(snapshotid)).pop();
+    return (await this.queryRestic<Snapshot>("snapshots", snapshotid)).pop();
   }
 
   async ListFilesForSnapshot(
     snapshotId: string,
-    path: string | undefined
-  ): Promise<SnapshotEntry[]> {
-    return [];
+    path: string | undefined = null
+  ): Promise<FileResult[]> {
+    let paths = [];
+    if (!path) {
+      paths = (await this.Snapshot(snapshotId)).paths;
+    } else {
+      paths = [path];
+    }
+
+    let results = [];
+
+    for (var p of paths) {
+      results = results.concat(
+        await this.queryRestic<FileResult>("ls", snapshotId, p)
+      );
+    }
+
+    return results;
   }
 
   async ExtractStream(snapshotId: string, path: string): Promise<Stream> {
     throw "Restore not available";
-  }
-
-  private async QueryRestic<T>(args: string[]): Promise<T[]> {
-    return [];
   }
 
   private async RestorePath<T>(

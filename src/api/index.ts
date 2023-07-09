@@ -50,7 +50,7 @@ app.get("/api/snapshot/:repoid/:snapshotid/info", async (req, res) => {
   res.json(await repo.Snapshot(snapshotid));
 });
 
-app.get("/api/snapshot/:repoid/:snapshotid", async (req, res) => {
+app.get("/api/snapshot/:repoid/:snapshotid/ls", async (req, res) => {
   let repoid = req.params.repoid;
   let snapshotid = req.params.snapshotid;
   let path = req.query.path;

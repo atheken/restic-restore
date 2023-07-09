@@ -39,14 +39,18 @@ export default class Restic {
     return env;
   }
 
-  async ListSnapshots(): Promise<Snapshot[]> {
+  private async listSnapshots(
+    snapshotId: string | null = null
+  ): Promise<Snapshot[]> {
     try {
       let pexec = promisify(exec);
 
       let env = await this.loadConfig();
 
       let { stderr, stdout } = await pexec(
-        "restic snapshots --json --no-lock -o s3.connections=50 -o b2.connections=50",
+        `restic snapshots ${
+          snapshotId || ""
+        } --json --no-lock -o s3.connections=50 -o b2.connections=50`,
         {
           env,
         }
@@ -55,6 +59,14 @@ export default class Restic {
     } catch (err) {
       throw err;
     }
+  }
+
+  async ListSnapshots(): Promise<Snapshot[]> {
+    return await this.listSnapshots();
+  }
+
+  async Snapshot(snapshotid: string): Promise<Snapshot> {
+    return (await this.listSnapshots(snapshotid)).pop();
   }
 
   async ListFilesForSnapshot(

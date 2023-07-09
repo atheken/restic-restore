@@ -1,21 +1,22 @@
 <script lang="ts">
-    import { page } from "$app/stores";
-    import type { Snapshot } from "$lib/ApiModels";
-    import { fetchJson } from "$lib/Helpers";
-    import { onMount } from "svelte";
-    let repo = $page.params.repo;
-    let snapshots: Snapshot[] = [];
+  import { base } from "$app/paths";
+  import { page } from "$app/stores";
+  import type { Snapshot } from "$lib/ApiModels";
+  import { fetchJson } from "$lib/Helpers";
+  let repo = $page.params.repo;
 
-    onMount(async () => {
-        snapshots = await fetchJson<Snapshot[]>(`../api/repo/${repo}`);
-    });
+  let snapshots = fetchJson<Snapshot[]>(`../api/repo/${repo}`);
 </script>
 
-You are attempting to access the `{repo}` repository, it needs to be
-<a href="./{repo}/unlock">unlocked, first</a>
-
-<ul>
+{#await snapshots}
+  Loading Snapshots...
+{:then snapshots}
+  <ul>
     {#each snapshots as s}
-        <li>{s.id}</li>
+      <li>
+        <a href="{base}/{repo}/{s.id}/"> {s.id.substring(0, 6)}</a><br />
+        <div class="text-xs text-neutral-300">{s.time} - {s.hostname}</div>
+      </li>
     {/each}
-</ul>
+  </ul>
+{/await}

@@ -1,66 +1,67 @@
-import Restic from "./models/restic"
-import { randomUUID } from "crypto"
+import Restic from "./models/restic";
+import { randomUUID } from "crypto";
 import express from "express";
 
-let app = express()
+let app = express();
 
-let port = parseInt(process.env?.HTTP_PORT || "8888")
+let port = parseInt(process.env?.HTTP_PORT || "8888");
 
-app.listen(port, ()=>{
-    console.log(`Listening on port: ${port}`)
+app.listen(port, () => {
+  console.log(`Listening on port: ${port}`);
 });
 
-app.use(async (_, req,res,next)=>{
-    try{
-        await next(req, res);
-    }catch(err){
-        res.status(503, { success : false, message: err })
-    }
-})
+app.use(async (_, req, res, next) => {
+  try {
+    await next(req, res);
+  } catch (err) {
+    res.status(503, { success: false, message: err });
+  }
+});
 
-app.get("/api/repos", async (req, res)=>{
-    res.json(await Restic.ListRepos())
-})
+app.get("/api/repos", async (req, res) => {
+  res.json(await Restic.ListRepos());
+});
 
-app.post("/api/repo", async (req, res)=>{
-    //write a config to the storage path.
-    throw "not implemented."
-})
+app.post("/api/repo", async (req, res) => {
+  //write a config to the storage path.
+  throw "not implemented.";
+});
 
 app.get("/api/repo/:repoid/gen-token", async (req, res) => {
-    throw "not implemented"
-})
-
-app.get("/api/repo/:repoid", async(req, res) =>{
-    let repoid = req.params.repoid
-    let repo = new Restic(repoid)
-    try {
-        res.json(await repo.ListSnapshots())
-    }catch(err){
-        console.error(err)
-        res.json({error : true, err });
-    }
-
-    //     c.JSON(200, launchRestic[model.Snapshot](config_path+"/"+c.Param("repoid"), "", "-v", "snapshots", "--json"))
-})
-
-app.get("/api/snapshot/:repoid/:snapshotid", async (req, res)=>{
-    let repoid = req.params.repoid
-    let snapshotid = req.params.snapshotid
-    let path = req.query.path
-    let repo = new Restic(repoid)
-    res.json(await repo.ListFilesForSnapshot(snapshotid, path?.toString()))
+  throw "not implemented";
 });
 
-app.get("/api/snapshot/:repoid/:snapshotid/download", async(req, res)=>{
-    let repoid = req.params.repoid
-    let snapshotid = req.params.snapshotid
-    let path = req.query.path
-    let repo = new Restic(repoid);
-    res.setHeader("Content-Disposition", `attachment;${snapshotid}-${randomUUID}.tar.gz`);
-    res.contentType("application/tar+gzip");
-    (await repo.ExtractStream(snapshotid, path!.toString())).pipe(res)
-})
+app.get("/api/repo/:repoid", async (req, res) => {
+  let repoid = req.params.repoid;
+  let repo = new Restic(repoid);
+  try {
+    res.json(await repo.ListSnapshots());
+  } catch (err) {
+    console.error(err);
+    res.json({ error: true, err });
+  }
+});
+
+app.get("/api/snapshot/:repoid/:snapshotid", async (req, res) => {
+  let repoid = req.params.repoid;
+  let snapshotid = req.params.snapshotid;
+  let path = req.query.path;
+  let repo = new Restic(repoid);
+  res.json(await repo.ListFilesForSnapshot(snapshotid, path?.toString()));
+});
+
+app.get("/api/snapshot/:repoid/:snapshotid/download", async (req, res) => {
+  let repoid = req.params.repoid;
+  let snapshotid = req.params.snapshotid;
+  let path = req.query.path;
+  let repo = new Restic(repoid);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment;${snapshotid}-${randomUUID}.tar.gz`
+  );
+  res.contentType("application/tar+gzip");
+  (await repo.ExtractStream(snapshotid, path!.toString())).pipe(res);
+});
 
 // r.GET("/api/snapshot/:repoid/:snapshotid/download", func(c *gin.Context) {
 //     // TODO: download the snapshot data for the specified path.

@@ -1,49 +1,81 @@
-import type Snapshot from "./snapshot"
-import type SnapshotEntry from "./snapshotEntry"
+import type Snapshot from "./snapshot";
+import type SnapshotEntry from "./snapshotEntry";
 import fs from "fs";
 import type Repo from "./repo";
-import type { Stream } from "stream";
+import { exec } from "child_process";
+import { promisify } from "util";
+import { Stream } from "stream";
 
 export default class Restic {
-    private static basepath = process.env?.CONFIG_PATH || "/configs"    
+  private static basepath = process.env?.CONFIG_PATH || "/configs";
 
-    static async ListRepos() : Promise<Repo[]>{
-        return new Promise((resolve, reject) => {
-            fs.readdir(Restic.basepath, (err, files)=>{
-                if(err){
-                    reject(err)
-                }else{
-                    resolve(files.map(f =>{
-                        return { Id: f } 
-                    }))
-                }
-            })
-        })
-    }
+  static async ListRepos(): Promise<Repo[]> {
+    let readdir = promisify(fs.readdir);
+    let files = await readdir(Restic.basepath);
 
-    configPath: string;
-    
-    constructor(configPath: string){
-        this.configPath = configPath;
-    }
+    return files.map((k) => {
+      return { Id: k } as Repo;
+    });
+  }
 
-    async ListSnapshots(): Promise<Snapshot[]> {
-        return [];
-    }
+  configPath: string;
 
-    async ListFilesForSnapshot(snapshotId:string, path: string | undefined): Promise<SnapshotEntry[]> {
-        return [];
-    }
+  constructor(configPath: string) {
+    this.configPath = Restic.basepath + "/" + configPath;
+  }
 
-    async ExtractStream(snapshotId: string, path: string) : Promise<Stream>{
-        throw "Restore not available"
-    }
+  async loadConfig(): Promise<NodeJS.ProcessEnv> {
+    let read = promisify(fs.readFile);
 
-    private async QueryRestic<T>(args:string[]) : Promise<T[]> {
-        return []
-    }
+    let config = await read(this.configPath, "utf-8");
 
-    private async RestorePath<T>(snapshotid:string, path:string) : Promise<ReadableStream> {
-        throw "not implemented"
+    let env = {};
+
+    config.split("\n").forEach((f) => {
+      let arg = f.split("=");
+      env[arg[0]] = arg[1].replace(/(^["']+)|(["']+$)/g, "");
+    });
+
+    return env;
+  }
+
+  async ListSnapshots(): Promise<Snapshot[]> {
+    try {
+      let pexec = promisify(exec);
+
+      let env = await this.loadConfig();
+
+      let { stderr, stdout } = await pexec(
+        "restic snapshots --json --no-lock -o s3.connections=50 -o b2.connections=50",
+        {
+          env,
+        }
+      );
+      return JSON.parse(stdout);
+    } catch (err) {
+      throw err;
     }
+  }
+
+  async ListFilesForSnapshot(
+    snapshotId: string,
+    path: string | undefined
+  ): Promise<SnapshotEntry[]> {
+    return [];
+  }
+
+  async ExtractStream(snapshotId: string, path: string): Promise<Stream> {
+    throw "Restore not available";
+  }
+
+  private async QueryRestic<T>(args: string[]): Promise<T[]> {
+    return [];
+  }
+
+  private async RestorePath<T>(
+    snapshotid: string,
+    path: string
+  ): Promise<ReadableStream> {
+    throw "not implemented";
+  }
 }

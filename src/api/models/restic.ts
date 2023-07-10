@@ -50,7 +50,7 @@ export default class Restic {
       let env = await this.loadConfig();
 
       let { stderr, stdout } = await pexec(
-        `restic ${command} ${snapshotId} ${args} --json --no-lock --no-cache -o s3.connections=100 -o b2.connections=100`,
+        `restic ${command} ${snapshotId} ${args} --json --no-lock -o s3.connections=50 -o b2.connections=50`,
         {
           env,
         }

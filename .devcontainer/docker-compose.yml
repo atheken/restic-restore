@@ -1,8 +1,10 @@
-version: '3.0'
+version: "3.0"
 services:
   main:
     build: ./main
     command: sleep infinity
+    environment:
+      RESTIC_CACHE_DIR: /restic-cache
     volumes:
       - ../:/data
       - ../configs:/configs

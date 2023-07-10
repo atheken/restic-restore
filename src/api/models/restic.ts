@@ -3,12 +3,12 @@ import fs from "fs";
 import type Repo from "./repo";
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
-import { Readable, Stream } from "stream";
-import FileResult from "./fileResult";
-import { execArgv } from "process";
+import type { Readable } from "stream";
+import type FileResult from "./fileResult";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
+  private static cacheDir: string = process.env?.RESTIC_CACHE_DIR || "";
 
   static async ListRepos(): Promise<Repo[]> {
     let readdir = promisify(fs.readdir);
@@ -36,6 +36,10 @@ export default class Restic {
       let arg = f.split("=");
       env[arg[0]] = arg[1].replace(/(^["']+)|(["']+$)/g, "");
     });
+
+    if (Restic.cacheDir) {
+      env["RESTIC_CACHE_DIR"] = Restic.cacheDir;
+    }
 
     return env;
   }
@@ -77,12 +81,12 @@ export default class Restic {
   }
 
   async Snapshot(snapshotid: string): Promise<Snapshot> {
-    return (await this.queryRestic<Snapshot>("snapshots", snapshotid)).pop();
+    return (await this.queryRestic<Snapshot>("snapshots", snapshotid)).pop()!;
   }
 
   async ListFilesForSnapshot(
     snapshotId: string,
-    path: string | undefined = null
+    path: string | undefined | null = null
   ): Promise<FileResult[]> {
     let paths = [];
     if (!path) {

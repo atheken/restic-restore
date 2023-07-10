@@ -15,6 +15,13 @@
     search.set("path", path);
     return `${pathname}?${search}`;
   }
+
+  function getDownloadUrl(path: string, type: "file" | "dir") {
+    let search = new URLSearchParams(baseSearch);
+    search.set("path", path);
+    search.set("type", type);
+    return `${base}/../api/snapshot/${repo}/${snapshotid}/download?${search}`;
+  }
 </script>
 
 <div class="font-mono">
@@ -29,15 +36,14 @@
 
 <div class="w-full">
   {#await ApiClient.FileList(repo, snapshotid, $restorePath)}
-    <div class="text-center text-blue-800 animate-pulse">
-      Loading snapshot files...
-    </div>
+    <div class="text-center text-blue-800 animate-pulse">Loading files...</div>
   {:then files}
     <ul>
       {#each files as f}
         <li>
           {#if f.type == "file"}{f.name}
           {:else}<a href={getPathUrl(f.path)}>{f.name}</a>{/if}
+          <a href={getDownloadUrl(f.path, f.type)}>Download</a>
         </li>
       {/each}
     </ul>

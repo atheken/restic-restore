@@ -1,10 +1,11 @@
 import type Snapshot from "./snapshot";
 import fs from "fs";
 import type Repo from "./repo";
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
-import { Stream } from "stream";
+import { Readable, Stream } from "stream";
 import FileResult from "./fileResult";
+import { execArgv } from "process";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
@@ -101,14 +102,32 @@ export default class Restic {
     return results.filter((k) => k.struct_type != "snapshot");
   }
 
-  async ExtractStream(snapshotId: string, path: string): Promise<Stream> {
-    throw "Restore not available";
-  }
+  async ExtractStream(
+    snapshotId: string,
+    path: string,
+    archiveType: "tar" | "zip" = "tar"
+  ): Promise<Readable> {
+    let env = await this.loadConfig();
 
-  private async RestorePath<T>(
-    snapshotid: string,
-    path: string
-  ): Promise<ReadableStream> {
-    throw "not implemented";
+    let proc = spawn(
+      "restic",
+      [
+        "dump",
+        "-a",
+        archiveType,
+        snapshotId,
+        path,
+        "--no-lock",
+        "-o",
+        "s3.connections=50",
+        "-o",
+        "b2.connections=50",
+      ],
+      {
+        env,
+      }
+    );
+
+    return proc.stdout;
   }
 }

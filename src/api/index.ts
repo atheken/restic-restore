@@ -61,19 +61,28 @@ app.get("/api/snapshot/:repoid/:snapshotid/ls", async (req, res) => {
 app.get("/api/snapshot/:repoid/:snapshotid/download", async (req, res) => {
   let repoid = req.params.repoid;
   let snapshotid = req.params.snapshotid;
-  let path = req.query.path;
+  let path = req.query.path.toString();
+  let type = req.query.type.toString();
   let repo = new Restic(repoid);
+
+  let name = path.split("/").pop();
+
+  let contentType = "application/octet-stream";
+
+  if (type == "dir") {
+    name += ".tar";
+    contentType = "application/tar";
+  }
+
+  let attachmentName = `${snapshotid.substring(0, 6)}-${randomUUID()
+    .toString()
+    .substring(0, 6)}-${name}`;
+
   res.setHeader(
     "Content-Disposition",
-    `attachment;${snapshotid}-${randomUUID}.tar.gz`
+    `attachment;filename="${attachmentName}"`
   );
-  res.contentType("application/tar+gzip");
+  res.contentType(contentType);
+
   (await repo.ExtractStream(snapshotid, path!.toString())).pipe(res);
 });
-
-// r.GET("/api/snapshot/:repoid/:snapshotid/download", func(c *gin.Context) {
-//     // TODO: download the snapshot data for the specified path.
-//     c.JSON(504, gin.H{
-//         "msg": "not yet implemented.",
-//     })
-// })

@@ -50,7 +50,7 @@ export default class Restic {
       let env = await this.loadConfig();
 
       let { stderr, stdout } = await pexec(
-        `restic ${command} ${snapshotId} ${args} --json --no-lock -o s3.connections=100 -o b2.connections=100`,
+        `restic ${command} ${snapshotId} ${args} --json --no-lock --no-cache -o s3.connections=100 -o b2.connections=100`,
         {
           env,
         }
@@ -90,7 +90,7 @@ export default class Restic {
       paths = [path];
     }
 
-    let results = [];
+    let results: FileResult[] = [];
 
     for (var p of paths) {
       results = results.concat(
@@ -98,7 +98,7 @@ export default class Restic {
       );
     }
 
-    return results;
+    return results.filter((k) => k.struct_type != "snapshot");
   }
 
   async ExtractStream(snapshotId: string, path: string): Promise<Stream> {

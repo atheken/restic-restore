@@ -6,7 +6,9 @@
 </script>
 
 {#await ApiClient.Snapshots($page.params.repo)}
-  Loading snapshots...
+  <div class="w-full text-center text-blue-800 animate-pulse">
+    Loading snapshots...
+  </div>
 {:then snapshots}
   <ul>
     {#each snapshots as s}
@@ -16,4 +18,8 @@
       </li>
     {/each}
   </ul>
+{:catch err}
+  <div class="w-full text-center text-rose-800">
+    Unable to load snapshots. :-/
+  </div>
 {/await}

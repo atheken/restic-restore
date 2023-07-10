@@ -9,5 +9,5 @@ export default interface FileResult {
   mtime: Date;
   atime: Date;
   ctime: Date;
-  struct_type: string;
+  struct_type: "node" | "snapshot";
 }

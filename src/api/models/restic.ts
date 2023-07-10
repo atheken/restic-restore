@@ -77,7 +77,7 @@ export default class Restic {
   }
 
   async ListSnapshots(): Promise<Snapshot[]> {
-    return await this.queryRestic<Snapshot>("snapshots");
+    return (await this.queryRestic<Snapshot>("snapshots")).reverse();
   }
 
   async Snapshot(snapshotid: string): Promise<Snapshot> {

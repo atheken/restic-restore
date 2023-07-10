@@ -1,39 +1,16 @@
 <script lang="ts">
   import { base } from "$app/paths";
   import { page } from "$app/stores";
-  import type { FileResult, Snapshot } from "$lib/ApiModels";
-  import { fetchJson } from "$lib/Helpers";
-  import { onMount } from "svelte";
-  import { writable } from "svelte/store";
+  import ApiClient from "$lib/ApiClient";
 
   let snapshotid = $page.params.snapshotid;
   let repo = $page.params.repo;
   let restorePath = $page.url.searchParams.get("path");
-  let snapshot = writable<Snapshot>();
-  let files = writable<FileResult[]>([]);
-
-  onMount(async () => {
-    try {
-      var search = new URLSearchParams({ path: restorePath || "" });
-
-      files.set(
-        await fetchJson<FileResult[]>(
-          `/api/snapshot/${repo}/${snapshotid}/ls?${search}`
-        )
-      );
-
-      snapshot.set(
-        await fetchJson<Snapshot>(`/api/snapshot/${repo}/${snapshotid}/info`)
-      );
-    } catch (err) {
-      console.log(err);
-    }
-  });
-
   let pathname = $page.url.pathname;
-  let search = $page.url.searchParams;
+  let baseSearch = $page.url.searchParams;
 
   function getPathUrl(path: string) {
+    let search = new URLSearchParams(baseSearch);
     search.set("path", path);
     return `${pathname}?${search}`;
   }
@@ -49,11 +26,15 @@
   </div>
 </div>
 
-<ul>
-  {#each $files as f}
-    <li>
-      {#if f.type == "file"}{f.name}
-      {:else}<a href={getPathUrl(f.path)}>{f.name}</a>{/if}
-    </li>
-  {/each}
-</ul>
+{#await ApiClient.FileList(repo, snapshotid, restorePath)}
+  Loading snapshot files...
+{:then files}
+  <ul>
+    {#each files as f}
+      <li>
+        {#if f.type == "file"}{f.name}
+        {:else}<a href={getPathUrl(f.path)}>{f.name}</a>{/if}
+      </li>
+    {/each}
+  </ul>
+{/await}

@@ -1,19 +1,13 @@
-<script lang="ts">
-    import { fetchJson } from "../lib/Helpers";
-    import type { Repo, RepoList } from "../lib/ApiModels";
-    import { onMount } from "svelte";
-
-    let repos: Repo[] = [];
-
-    onMount(async () => {
-        repos = await fetchJson<Repo[]>("/api/repos");
-    });
+<script>
+  import ApiClient from "$lib/ApiClient";
 </script>
 
-The following repos are defined:
-
-<ul>
+{#await ApiClient.Repos()}
+  Loading repos...
+{:then repos}
+  <ul>
     {#each repos as r}
-        <li><a href="./{r.Id}">{r.Id}</a></li>
+      <li><a href="./{r.Id}">{r.Id}</a></li>
     {/each}
-</ul>
+  </ul>
+{/await}

@@ -6,8 +6,12 @@ async function fetchJson<T>(
   input: RequestInfo | URL,
   init: RequestInit | undefined = undefined
 ): Promise<T> {
-  let response = await fetch(input, init);
-  return (await response.json()) as T;
+  let res = await fetch(input, init);
+  if (res.ok) {
+    return (await res).json() as T;
+  } else {
+    throw new Error(await (await res).text());
+  }
 }
 
 export default class ApiClient {

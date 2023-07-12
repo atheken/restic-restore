@@ -2,7 +2,11 @@
   import { base } from "$app/paths";
   import { page } from "$app/stores";
   import ApiClient from "$lib/ApiClient";
+  import { relative } from "$lib/Helpers";
+  import nav from "$lib/Navigation";
   import { derived } from "svelte/store";
+  import { filesize } from "filesize";
+  import { onMount } from "svelte";
 
   let snapshotid = $page.params.snapshotid;
   let repo = $page.params.repo;
@@ -22,31 +26,63 @@
     search.set("type", type);
     return `${base}/../api/snapshot/${repo}/${snapshotid}/download?${search}`;
   }
-</script>
 
-<div class="font-mono">
-  <div class="text-sm text-neutral-300">Path:</div>
-  <div class="text-base">
-    <a href="{base}/{repo}/">{repo}</a><span
-      >/<a href="{base}/{repo}/{snapshotid}">{snapshotid.substring(0, 6)}</a>:
-    </span>{#if $restorePath}<span>{$restorePath}</span>
-    {/if}
-  </div>
-</div>
+  restorePath.subscribe((r) => nav(repo, snapshotid, r));
+  onMount(() => nav(repo, snapshotid, $restorePath));
+</script>
 
 <div class="w-full">
   {#await ApiClient.FileList(repo, snapshotid, $restorePath)}
     <div class="text-center text-blue-800 animate-pulse">Loading files...</div>
   {:then files}
-    <ul>
-      {#each files as f}
-        <li>
-          {#if f.type == "file"}{f.name}
-          {:else}<a href={getPathUrl(f.path)}>{f.name}</a>{/if}
-          <a href={getDownloadUrl(f.path, f.type)}>Download</a>
-        </li>
-      {/each}
-    </ul>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
+        <thead>
+          <tr class="text-left">
+            <th class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+              Name
+            </th>
+            <th
+              class="text-center whitespace-nowrap px-4 py-2 font-medium text-gray-900"
+            >
+              Update Time
+            </th>
+            <th
+              class="text-center whitespace-nowrap px-4 py-2 font-medium text-gray-900"
+            >
+              File Size
+            </th>
+            <th
+              class="text-center whitespace-nowrap px-4 py-2 font-medium text-gray-900"
+            >
+              Recover
+            </th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200">
+          {#each files as f}
+            <tr class="hover:bg-neutral-100">
+              <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                {#if f.type == "file"}{f.name}
+                {:else}<a href={getPathUrl(f.path)}>{f.name}</a>{/if}
+              </td>
+              <td class="whitespace-nowrap px-4 py-2 text-center text-gray-700"
+                >{relative(f.mtime)}</td
+              >
+              <td class="whitespace-nowrap px-4 py-2 text-center text-gray-700"
+                >{f.size
+                  ? filesize(f.size, { base: 2, standard: "jedec" })
+                  : "-"}</td
+              >
+              <td class="whitespace-nowrap px-4 py-2 text-center text-gray-700"
+                ><a href={getDownloadUrl(f.path, f.type)}>Download</a></td
+              >
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
   {:catch}
     <div class="text-rose-800 text-center">
       Bummer! The path couldn't be loaded.

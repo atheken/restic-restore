@@ -37,15 +37,13 @@ app.get("/api/repo/:repoid", async (req, res) => {
   try {
     res.json(await repo.ListSnapshots());
   } catch (err) {
-    console.error(err);
-    res.json({ error: true, err });
+    res.status(503).json({ error: true, err });
   }
 });
 
 app.get("/api/snapshot/:repoid/:snapshotid/info", async (req, res) => {
   let repoid = req.params.repoid;
   let snapshotid = req.params.snapshotid;
-  let path = req.query.path;
   let repo = new Restic(repoid);
   res.json(await repo.Snapshot(snapshotid));
 });

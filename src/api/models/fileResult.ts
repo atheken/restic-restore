@@ -1,4 +1,5 @@
 export default interface FileResult {
+  size: number | null;
   name: string;
   type: "file" | "dir";
   path: string;

@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.3",
+    "filesize": "^10.0.7",
     "javascript-time-ago": "^2.5.9"
   }
 }

@@ -32,13 +32,17 @@ export default class Restic {
 
     let env = {};
 
-    config.split("\n").forEach((f) => {
-      let arg = f.split("=");
-      env[arg[0]] = arg[1].replace(/(^["']+)|(["']+$)/g, "");
-    });
+    config
+      .split("\n")
+      .filter((k) => k.trim() != "" && !k.startsWith("#"))
+      .forEach((f) => {
+        let arg = f.split("=");
+        env[arg[0]] = arg[1].replace(/(^["']+)|(["']+$)/g, "");
+      });
 
     if (Restic.cacheDir) {
       env["RESTIC_CACHE_DIR"] = Restic.cacheDir;
+      env["PATH"] = process.env.PATH;
     }
 
     return env;
@@ -114,6 +118,8 @@ export default class Restic {
         snapshotId,
         path,
         "--no-lock",
+        "-o",
+        "rclone.connections=50",
         "-o",
         "s3.connections=50",
         "-o",

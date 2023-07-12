@@ -2,6 +2,10 @@
   import { base } from "$app/paths";
   import ApiClient from "$lib/ApiClient";
   import Card from "$lib/Card.svelte";
+  import setNav from "$lib/Navigation";
+  import { onMount } from "svelte";
+
+  onMount(() => setNav());
 </script>
 
 <div class="w-full">

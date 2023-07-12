@@ -1,10 +1,10 @@
-import type Snapshot from "./snapshot";
+import type Snapshot from "./models/snapshot";
 import fs from "fs";
-import type Repo from "./repo";
+import type Repo from "./models/repo";
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
 import type { Readable } from "stream";
-import type FileResult from "./fileResult";
+import type FileResult from "./models/fileResult";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
@@ -81,29 +81,21 @@ export default class Restic {
   }
 
   async Snapshot(snapshotid: string): Promise<Snapshot> {
-    return (await this.queryRestic<Snapshot>("snapshots", snapshotid)).pop()!;
+    let s = await this.queryRestic<Snapshot>("snapshots", snapshotid);
+    return s.pop()!;
   }
 
   async ListFilesForSnapshot(
     snapshotId: string,
     path: string | undefined | null = null
   ): Promise<FileResult[]> {
-    let paths = [];
     if (!path) {
-      paths = (await this.Snapshot(snapshotId)).paths;
-    } else {
-      paths = [path];
+      path = "/";
     }
 
-    let results: FileResult[] = [];
-
-    for (var p of paths) {
-      results = results.concat(
-        await this.queryRestic<FileResult>("ls", snapshotId, p)
-      );
-    }
-
-    return results.filter((k) => k.struct_type != "snapshot");
+    return (await this.queryRestic<FileResult>("ls", snapshotId, path)).filter(
+      (k) => k.struct_type != "snapshot"
+    );
   }
 
   async ExtractStream(

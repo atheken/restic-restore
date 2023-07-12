@@ -1,4 +1,4 @@
-import Restic from "./models/restic";
+import Restic from "./restic";
 import { randomUUID } from "crypto";
 import express from "express";
 
@@ -55,7 +55,8 @@ app.get("/api/snapshot/:repoid/:snapshotid/ls", async (req, res) => {
   let snapshotid = req.params.snapshotid;
   let path = req.query.path;
   let repo = new Restic(repoid);
-  res.json(await repo.ListFilesForSnapshot(snapshotid, path?.toString()));
+  let files = await repo.ListFilesForSnapshot(snapshotid, path?.toString());
+  res.json(files);
 });
 
 app.get("/api/snapshot/:repoid/:snapshotid/download", async (req, res) => {

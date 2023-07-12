@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+cwd=$PWD
+function _exit() {
+    pushd $cwd
+}
+
+sourcepath=$(dirname $(readlink -f $0))
+
+trap _exit EXIT
+
+scratch=$sourcepath"/../test-repo"
+rm -rf $scratch
+mkdir -p $scratch
+pushd $scratch
+
+mkdir repo
+mkdir files
+
+RESTIC_PASSWORD=passpass restic init --repo $PWD/repo
+pushd files
+
+for i in $(seq 100); do
+    id=$(uuidgen)
+    mkdir -p ${id:0:1}
+    date >./${id:0:1}/$id.txt
+
+    if (($i % 10 == 0)); then
+        RESTIC_PASSWORD=passpass restic backup --repo $PWD/../repo ./
+        sleep 2
+    fi
+done
+
+popd
+popd

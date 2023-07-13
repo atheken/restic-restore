@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+trap popd EXIT
+
+pushd $(dirname $(readlink -f $0))/../
+
+echo $PWD

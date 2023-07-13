@@ -1,0 +1,6 @@
+.vscode
+.devcontainer
+node_modules/
+./**/node_modules/
+configs/
+test-repo/

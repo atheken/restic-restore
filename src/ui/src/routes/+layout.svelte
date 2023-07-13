@@ -3,10 +3,6 @@
   import Navigation from "$lib/Navigation";
   import "../app.css";
   import Header from "../lib/Header.svelte";
-  const ssr = false;
-  export const prerender = false;
-  export const trailingSlash = "always";
-
   Navigation();
 </script>
 

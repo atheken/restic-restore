@@ -8,6 +8,8 @@ interface PathItem {
 
 export let stack = writable<PathItem[]>();
 
+export const APP_PATH = `${base}/app/`;
+
 export default function setNav(
   repo: string | null = null,
   snapshot: string | null = null,
@@ -15,19 +17,19 @@ export default function setNav(
 ) {
   let pathItems: PathItem[] = [
     {
-      link: base,
+      link: APP_PATH,
       name: "Home",
     },
   ];
 
   if (repo) {
     pathItems.push({
-      link: `${base}/${repo}`,
+      link: `${APP_PATH}${repo}/`,
       name: repo,
     });
     if (snapshot) {
       pathItems.push({
-        link: `${base}/${repo}/${snapshot}`,
+        link: `${APP_PATH}${repo}/${snapshot}/`,
         name: snapshot.substring(0, 6),
       });
       if (path) {
@@ -38,7 +40,7 @@ export default function setNav(
           let s = new URLSearchParams({ path: "/" + prefix.join("/") });
           pathItems.push({
             name: p,
-            link: `${base}/${repo}/${snapshot}?${s}`,
+            link: `${APP_PATH}${repo}/${snapshot}?${s}`,
           });
         }
 

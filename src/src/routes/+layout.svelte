@@ -2,7 +2,7 @@
   import Breadcrumbs from "$lib/Breadcrumbs.svelte";
   import Navigation from "$lib/Navigation";
   import "../app.css";
-  import Header from "../lib/Header.svelte";
+  import Header from "$lib/Header.svelte";
   Navigation();
 </script>
 

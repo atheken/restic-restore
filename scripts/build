@@ -4,4 +4,6 @@ trap popd EXIT
 
 pushd $(dirname $(readlink -f $0))/../
 
+docker buildx build --push -t atheken/restic-restore .
+
 echo $PWD

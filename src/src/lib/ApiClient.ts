@@ -20,7 +20,7 @@ export default class ApiClient {
   }
 
   static async Snapshots(repoId: string): Promise<Snapshot[]> {
-    return await fetchJson<Snapshot[]>(`../api/repo/${repoId}`);
+    return await fetchJson<Snapshot[]>(`/api/repo/${repoId}`);
   }
 
   static async Snapshot(repoId: string, snapshotId: string): Promise<Snapshot> {

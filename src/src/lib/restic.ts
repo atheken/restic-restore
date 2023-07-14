@@ -1,10 +1,10 @@
-import type Snapshot from "./models/snapshot";
-import fs from "fs";
-import type Repo from "./models/repo";
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
-import type { Readable } from "stream";
-import type FileResult from "./models/fileResult";
+import Repo from "./models/repo";
+import fs from "fs";
+import Snapshot from "./models/snapshot";
+import FileResult from "./models/fileResult";
+import { Readable } from "stream";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";

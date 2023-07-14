@@ -17,11 +17,11 @@ COPY ./src/package-lock.json ./
 # gracefully stop the process
 RUN echo '; process.on("SIGINT", () => { process.exit(0) });' >> ./index.js
 RUN echo '; process.on("SIGTERM", () => { process.exit(0) });' >> ./index.js
-RUN echo '; process.on("SIGKILL", () => { process.exit(0) });' >> ./index.js
+#RUN echo '; process.on("SIGKILL", () => { process.exit(0) });' >> ./index.js
 RUN npm i --omit dev
 ENV NODE_ENV=production
-ENV RESTIC_CACHE_DIR=/restic-cache
+ENV RESTIC_CACHE_DIR=/cache
 ENV PORT=8888
-VOLUME /restic-cache
+VOLUME /cache
 VOLUME /configs
 ENTRYPOINT ["/usr/bin/node", "/app"]

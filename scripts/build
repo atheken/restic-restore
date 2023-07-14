@@ -4,7 +4,7 @@ trap popd EXIT
 
 pushd $(dirname $(readlink -f $0))/../
 
-docker buildx build --push -t atheken/restic-restore .
+docker buildx build --platform "linux/amd64,linux/arm64" --push -t atheken/restic-restore .
 
 docker pull atheken/restic-restore
 

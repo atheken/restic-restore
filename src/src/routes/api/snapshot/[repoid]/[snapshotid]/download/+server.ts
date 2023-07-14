@@ -1,7 +1,5 @@
 import Restic from "$lib/restic";
-import type { RequestEvent } from "@sveltejs/kit";
-
-let ev: RequestEvent;
+import { Readable } from "stream";
 
 export async function GET({
   params: { repoid, snapshotid },
@@ -26,14 +24,16 @@ export async function GET({
     .toString()
     .substring(0, 6)}-${name}`;
 
-  throw "not implemented.";
-  //let res = new Response(await repo.ExtractStream(snapshotid, path!.toString()));
+  let stream = await repo.ExtractStream(snapshotid, path!.toString());
+  let rs = Readable.toWeb(stream) as ReadableStream;
 
-  //   res.headers.set(
-  //     "Content-Disposition",
-  //     `attachment;filename="${attachmentName}"`
-  //   );
-  //   res.headers.set("Content-Type", contentType);
+  let res = new Response(rs);
 
-  //   return res;
+  res.headers.set(
+    "Content-Disposition",
+    `attachment;filename="${attachmentName}"`
+  );
+  res.headers.set("Content-Type", contentType);
+
+  return res;
 }

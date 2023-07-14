@@ -86,7 +86,9 @@
                     class="whitespace-nowrap px-4 py-2 font-medium text-gray-900"
                   >
                     {#if f.type == "file"}{f.name}
-                    {:else}<a href={getPathUrl(f.path)}>{f.name}</a>{/if}
+                    {:else}
+                      <a href={getPathUrl(f.path)}>{f.name}</a>
+                    {/if}
                   </td>
                   <td
                     class="whitespace-nowrap px-4 py-2 text-center text-gray-700"
@@ -100,8 +102,9 @@
                   >
                   <td
                     class="whitespace-nowrap px-4 py-2 text-center text-gray-700"
-                    ><a href={getDownloadUrl(f.path, f.type)}>Download</a></td
                   >
+                    <a href={getDownloadUrl(f.path, f.type)}>Download</a>
+                  </td>
                 </tr>
               {/each}
             </tbody>

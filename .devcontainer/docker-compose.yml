@@ -3,6 +3,8 @@ services:
   main:
     build: ./main
     command: sleep infinity
+    devices:
+      - /dev/fuse:/dev/fuse
     volumes:
       - ../:/data
       - ../configs:/configs

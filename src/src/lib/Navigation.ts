@@ -8,13 +8,9 @@ interface PathItem {
 
 export let stack = writable<PathItem[]>();
 
-export const APP_PATH = `${base}/app/`;
+export const APP_PATH = `${base}`;
 
-export default function setNav(
-  repo: string | null = null,
-  snapshot: string | null = null,
-  path: string | null = null
-) {
+export default function setNav(path: string[] = []) {
   let pathItems: PathItem[] = [
     {
       link: APP_PATH,
@@ -22,32 +18,15 @@ export default function setNav(
     },
   ];
 
-  if (repo) {
+  let prefix = [];
+  for (let p of path) {
+    prefix.push(p);
+    let current = "/" + prefix.join("/");
     pathItems.push({
-      link: `${APP_PATH}${repo}/`,
-      name: repo,
+      name: p,
+      link: `${APP_PATH}${current}`,
     });
-    if (snapshot) {
-      pathItems.push({
-        link: `${APP_PATH}${repo}/${snapshot}/`,
-        name: snapshot.substring(0, 6),
-      });
-      if (path) {
-        let parts = path.replace(/(^\/)|(\/$)/, "").split("/");
-        let prefix = [];
-        for (let p of parts) {
-          prefix.push(p);
-          let s = new URLSearchParams({ path: "/" + prefix.join("/") });
-          pathItems.push({
-            name: p,
-            link: `${APP_PATH}${repo}/${snapshot}?${s}`,
-          });
-        }
-
-        //split the path up and put a link in the path for each item.
-      }
-    }
   }
+
   stack.set(pathItems);
 }
-setNav();

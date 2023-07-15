@@ -1,14 +1,19 @@
-import { exec, spawn } from "child_process";
 import { promisify } from "util";
-import Repo from "./models/repo";
 import fs from "fs";
-import Snapshot from "./models/snapshot";
-import FileResult from "./models/fileResult";
-import { Readable } from "stream";
+import type Repo from "./models/repo";
+import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
+import { randomUUID } from "crypto";
+import { join } from "path";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
   private static cacheDir: string = process.env?.RESTIC_CACHE_DIR || "";
+  private static mountPath: string =
+    process.env?.RESTIC_MOUNT_DIR || "/tmp/restic-mount/";
+  private static repos = new Map<string, Restic>();
+  private mountProcess?: ChildProcessWithoutNullStreams;
+  private configPath: string;
+  private basePath = `${Restic.mountPath}${randomUUID()}`;
 
   static async ListRepos(): Promise<Repo[]> {
     let readdir = promisify(fs.readdir);
@@ -19,13 +24,20 @@ export default class Restic {
     });
   }
 
-  configPath: string;
+  static async Access(repoId: string): Promise<Restic> {
+    let repo = Restic.repos.get(repoId);
+    if (!repo) {
+      repo = new this(repoId);
+      Restic.repos.set(repoId, repo);
+    }
+    return repo;
+  }
 
   constructor(configPath: string) {
     this.configPath = Restic.basepath + "/" + configPath;
   }
 
-  async loadConfig(): Promise<NodeJS.ProcessEnv> {
+  private async loadConfig(): Promise<NodeJS.ProcessEnv> {
     let read = promisify(fs.readFile);
 
     let config = await read(this.configPath, "utf-8");
@@ -48,88 +60,48 @@ export default class Restic {
     return env;
   }
 
-  private async queryRestic<T>(
-    command: "ls" | "snapshots",
-    snapshotId: string | "" = "",
-    args: string | "" = ""
-  ): Promise<T[]> {
-    try {
-      let pexec = promisify(exec);
+  private async mount() {
+    if (!this.mountProcess) {
+      await fs.promises.mkdir(this.basePath, { recursive: true });
 
-      let env = await this.loadConfig();
+      this.mountProcess = spawn("restic", ["mount", this.basePath], {
+        env: await this.loadConfig(),
+      });
 
-      let { stderr, stdout } = await pexec(
-        `restic ${command} ${snapshotId} ${args} --json --no-lock -o s3.connections=50 -o b2.connections=50`,
-        {
-          env,
-        }
-      );
-      // this is a bit of a hack because the output from the
-      // restic commands is not normalized to
-      // line-oriented or object-oriented, so we sniff it first.
-      if (stdout.startsWith("[")) {
-        return JSON.parse(stdout);
-      } else {
-        return stdout
-          .split("\n")
-          .filter((k) => k.trim() != "")
-          .map((f) => JSON.parse(f));
-      }
-    } catch (err) {
-      throw err;
+      let readMessage =
+        "When finished, quit with Ctrl-c here or umount the mountpoint.";
     }
   }
 
-  async ListSnapshots(): Promise<Snapshot[]> {
-    return (await this.queryRestic<Snapshot>("snapshots")).reverse();
+  async List(path: string = ""): Promise<FileStat[]> {
+    await this.mount();
+    let lspath = join(this.basePath, path, "/");
+    let results = await fs.promises.readdir(lspath);
+    return (
+      await Promise.all(
+        results.map(async (k) => {
+          let stat = await fs.promises.stat(lspath + k);
+          return {
+            isDirectory: stat.isDirectory(),
+            ctime: stat.ctime,
+            mtime: stat.mtime,
+            atime: stat.atime,
+            size: stat.size,
+            name: k,
+            parent: lspath,
+          };
+        })
+      )
+    ).sort((l, r) => r.mtime.getTime() - l.mtime.getTime());
   }
+}
 
-  async Snapshot(snapshotid: string): Promise<Snapshot> {
-    let s = await this.queryRestic<Snapshot>("snapshots", snapshotid);
-    return s.pop()!;
-  }
-
-  async ListFilesForSnapshot(
-    snapshotId: string,
-    path: string | undefined | null = null
-  ): Promise<FileResult[]> {
-    if (!path) {
-      path = "/";
-    }
-
-    return (await this.queryRestic<FileResult>("ls", snapshotId, path)).filter(
-      (k) => k.struct_type != "snapshot"
-    );
-  }
-
-  async ExtractStream(
-    snapshotId: string,
-    path: string,
-    archiveType: "tar" | "zip" = "tar"
-  ): Promise<Readable> {
-    let env = await this.loadConfig();
-
-    let proc = spawn(
-      "restic",
-      [
-        "dump",
-        "-a",
-        archiveType,
-        snapshotId,
-        path,
-        "--no-lock",
-        "-o",
-        "rclone.connections=50",
-        "-o",
-        "s3.connections=50",
-        "-o",
-        "b2.connections=50",
-      ],
-      {
-        env,
-      }
-    );
-
-    return proc.stdout;
-  }
+export interface FileStat {
+  isDirectory: boolean;
+  atime: Date;
+  mtime: Date;
+  ctime: Date;
+  size: number;
+  name: string;
+  parent: string;
 }

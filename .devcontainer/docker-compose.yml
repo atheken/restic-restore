@@ -3,9 +3,12 @@ services:
   main:
     build: ./main
     command: sleep infinity
+    cap_add:
+      - SYS_ADMIN
+    privileged: true
     devices:
       - /dev/fuse:/dev/fuse
     volumes:
       - ../:/data
       - ../configs:/configs
-      - /tmp/restic-cache:/cache
+      - /tmp/restic-cache:/restic-cache

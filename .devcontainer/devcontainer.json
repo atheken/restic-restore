@@ -8,8 +8,6 @@
 	"service": "main",
 	"workspaceFolder": "/data",
 	"shutdownAction": "stopCompose",
-	"remoteUser": "app",
-	"containerUser": "app",
 	"customizations": {
 		"vscode": {
 			"extensions": [

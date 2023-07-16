@@ -71,9 +71,9 @@
                   class="whitespace-nowrap px-4 py-2 text-center text-gray-700"
                 >
                   <a
-                    href={`${base}/download/${f.isDirectory ? "dir" : "file"}/${
-                      f.parent
-                    }/${f.name}`}>Download</a
+                    href={`${base}/api/download/${
+                      f.isDirectory ? "dir" : "file"
+                    }${f.parent}${f.name}`}>Download</a
                   >
                 </td>
               </tr>

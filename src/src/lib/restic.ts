@@ -4,6 +4,7 @@ import type Repo from "./models/repo";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
 import { randomUUID } from "crypto";
 import { join } from "path";
+import type { Readable } from "node:stream";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
@@ -42,7 +43,7 @@ export default class Restic {
 
     let config = await read(this.configPath, "utf-8");
 
-    let env = {};
+    let env: NodeJS.ProcessEnv = {};
 
     config
       .split("\n")
@@ -64,35 +65,75 @@ export default class Restic {
     if (!this.mountProcess) {
       await fs.promises.mkdir(this.basePath, { recursive: true });
 
-      this.mountProcess = spawn("restic", ["mount", this.basePath], {
-        env: await this.loadConfig(),
+      //listen for files in the specified path.
+      let filesAvailable = new Promise(async (res, rej) => {
+        let sleep = promisify(setTimeout);
+        do {
+          let results = await fs.promises.readdir(this.basePath);
+          if (results.length > 0) {
+            res(null);
+            break;
+          }
+          await sleep(1000);
+        } while (true);
       });
 
-      let readMessage =
-        "When finished, quit with Ctrl-c here or umount the mountpoint.";
+      let proc = spawn("restic", ["mount", this.basePath], {
+        env: (await this.loadConfig()) as NodeJS.ProcessEnv,
+      });
+
+      await Promise.any([this.mountProcess, filesAvailable]);
+
+      if (proc.exitCode || 0 !== 0) {
+        throw "The mount process failed, and we therefore do not have files to show.";
+      }
+      this.mountProcess = proc;
     }
+  }
+
+  async Close() {
+    this.mountProcess?.kill("SIGINT");
+    this.mountProcess = undefined;
   }
 
   async List(path: string = ""): Promise<FileStat[]> {
     await this.mount();
     let lspath = join(this.basePath, path, "/");
     let results = await fs.promises.readdir(lspath);
-    return (
-      await Promise.all(
-        results.map(async (k) => {
-          let stat = await fs.promises.stat(lspath + k);
-          return {
-            isDirectory: stat.isDirectory(),
-            ctime: stat.ctime,
-            mtime: stat.mtime,
-            atime: stat.atime,
-            size: stat.size,
-            name: k,
-            parent: lspath,
-          };
-        })
-      )
-    ).sort((l, r) => r.mtime.getTime() - l.mtime.getTime());
+    return await Promise.all(
+      results.map(async (k) => {
+        let stat = await fs.promises.stat(lspath + k);
+        return {
+          isDirectory: stat.isDirectory(),
+          ctime: stat.ctime,
+          mtime: stat.mtime,
+          atime: stat.atime,
+          size: stat.size,
+          name: k,
+          parent: lspath,
+        };
+      })
+    );
+  }
+
+  async StreamPath(
+    path: string,
+    type: "dir" | "file",
+    archiveType: "tar" | "tar.gz" | "zip" = "tar.gz"
+  ): Promise<Readable> {
+    let task: ChildProcessWithoutNullStreams;
+
+    if (type == "dir") {
+      task = spawn("/bin/tar", ["-cz", join(this.basePath, path)], {
+        stdio: "pipe",
+      });
+    } else {
+      task = spawn("/bin/cat", [join(this.basePath, path)], {
+        stdio: "pipe",
+      });
+    }
+
+    return task.stdout;
   }
 }
 

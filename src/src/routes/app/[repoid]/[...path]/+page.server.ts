@@ -3,8 +3,7 @@ import Restic from "$lib/restic";
 export async function load({ params }) {
   // we should handle urlencoded parts...
   let path = params.path.split("/").filter((l) => l.trim() != "");
-  let repo = path.shift();
-  let restic = Restic.Access(repo!);
+  let restic = await Restic.Access(params.repoid);
 
-  return { files: (await restic).List(path.join("/")) };
+  return { files: restic.List(path.join("/")) };
 }

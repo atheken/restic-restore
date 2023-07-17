@@ -73,7 +73,7 @@
                   <a
                     href={`${base}/api/download/${
                       f.isDirectory ? "dir" : "file"
-                    }${f.parent}${f.name}`}>Download</a
+                    }/${$page.params.path}${f.name}`}>Download</a
                   >
                 </td>
               </tr>

@@ -34,7 +34,7 @@ export default class Restic {
     return repo;
   }
 
-  constructor(configPath: string) {
+  private constructor(configPath: string) {
     this.configPath = Restic.basepath + "/" + configPath;
   }
 
@@ -110,7 +110,7 @@ export default class Restic {
           atime: stat.atime,
           size: stat.size,
           name: k,
-          parent: lspath,
+          parent: path,
         };
       })
     );
@@ -124,12 +124,14 @@ export default class Restic {
     let task: ChildProcessWithoutNullStreams;
 
     if (type == "dir") {
-      task = spawn("/bin/tar", ["-cz", join(this.basePath, path)], {
+      task = spawn("/bin/tar", ["-cz", path], {
         stdio: "pipe",
+        cwd: this.basePath,
       });
     } else {
-      task = spawn("/bin/cat", [join(this.basePath, path)], {
+      task = spawn("/bin/cat", [path], {
         stdio: "pipe",
+        cwd: this.basePath,
       });
     }
 

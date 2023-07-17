@@ -12,7 +12,7 @@ interface paramsStruct {
 export async function GET(params: paramsStruct): Promise<Response> {
   let { repoid, path, type } = params.params;
 
-  let repo = new Restic(repoid);
+  let repo = await Restic.Access(repoid);
 
   let name = path.split("/").pop();
 

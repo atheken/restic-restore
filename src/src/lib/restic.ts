@@ -12,7 +12,7 @@ export default class Restic {
   private static mountPath: string =
     process.env?.RESTIC_MOUNT_DIR || "/tmp/restic-mount/";
   private static repos = new Map<string, Restic>();
-  private mountProcess?: ChildProcessWithoutNullStreams;
+  private mountedProcess = false;
   private configPath: string;
   private basePath = `${Restic.mountPath}${randomUUID()}`;
 
@@ -62,7 +62,7 @@ export default class Restic {
   }
 
   private async mount() {
-    if (!this.mountProcess) {
+    if (!this.mountedProcess) {
       await fs.promises.mkdir(this.basePath, { recursive: true });
 
       //listen for files in the specified path.
@@ -78,22 +78,24 @@ export default class Restic {
         } while (true);
       });
 
-      let proc = spawn("restic", ["mount", this.basePath], {
+      this.mountedProcess = true;
+
+      let p = spawn("restic", ["mount", this.basePath], {
         env: (await this.loadConfig()) as NodeJS.ProcessEnv,
       });
 
-      await Promise.any([this.mountProcess, filesAvailable]);
+      process.on("SIGINT", () => {
+        if (this.mountedProcess) p.kill("SIGINT");
+      });
 
-      if (proc.exitCode || 0 !== 0) {
-        throw "The mount process failed, and we therefore do not have files to show.";
-      }
-      this.mountProcess = proc;
+      p.on("error", () => {
+        this.mountedProcess = false;
+      }).on("exit", () => {
+        this.mountedProcess = false;
+      });
+
+      await filesAvailable;
     }
-  }
-
-  async Close() {
-    this.mountProcess?.kill("SIGINT");
-    this.mountProcess = undefined;
   }
 
   async List(path: string = ""): Promise<FileStat[]> {

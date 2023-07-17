@@ -3,7 +3,7 @@ import fs from "fs";
 import type Repo from "./models/repo";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
 import { randomUUID } from "crypto";
-import { join } from "path";
+import path, { join } from "path";
 import type { Readable } from "node:stream";
 
 export default class Restic {
@@ -15,6 +15,7 @@ export default class Restic {
   private mountedProcess = false;
   private configPath: string;
   private basePath = `${Restic.mountPath}${randomUUID()}`;
+  repoId: string;
 
   static async ListRepos(): Promise<Repo[]> {
     let readdir = promisify(fs.readdir);
@@ -34,30 +35,29 @@ export default class Restic {
     return repo;
   }
 
-  private constructor(configPath: string) {
-    this.configPath = Restic.basepath + "/" + configPath;
+  private constructor(repoId: string) {
+    this.repoId = repoId;
+    this.configPath = path.join(Restic.basepath, repoId);
+    this.ensureConfig();
+  }
+
+  private ensureConfig() {
+    if (!fs.existsSync(this.configPath))
+      throw `The specified repo '${this.repoId}' does not exist.`;
   }
 
   private async loadConfig(): Promise<NodeJS.ProcessEnv> {
+    this.ensureConfig();
     let read = promisify(fs.readFile);
 
-    let config = await read(this.configPath, "utf-8");
-
-    let env: NodeJS.ProcessEnv = {};
-
-    config
-      .split("\n")
-      .filter((k) => k.trim() != "" && !k.startsWith("#"))
-      .forEach((f) => {
-        let arg = f.split("=");
-        env[arg[0]] = arg[1].replace(/(^["']+)|(["']+$)/g, "");
-      });
+    let env = JSON.parse(
+      await read(this.configPath, "utf-8")
+    ) as NodeJS.ProcessEnv;
 
     if (Restic.cacheDir) {
       env["RESTIC_CACHE_DIR"] = Restic.cacheDir;
       env["PATH"] = process.env.PATH;
     }
-
     return env;
   }
 
@@ -66,17 +66,6 @@ export default class Restic {
       await fs.promises.mkdir(this.basePath, { recursive: true });
 
       //listen for files in the specified path.
-      let filesAvailable = new Promise(async (res, rej) => {
-        let sleep = promisify(setTimeout);
-        do {
-          let results = await fs.promises.readdir(this.basePath);
-          if (results.length > 0) {
-            res(null);
-            break;
-          }
-          await sleep(1000);
-        } while (true);
-      });
 
       this.mountedProcess = true;
 
@@ -92,6 +81,21 @@ export default class Restic {
         this.mountedProcess = false;
       }).on("exit", () => {
         this.mountedProcess = false;
+      });
+
+      let filesAvailable = new Promise(async (res, rej) => {
+        let sleep = promisify(setTimeout);
+        do {
+          let results = await fs.promises.readdir(this.basePath);
+          if (results.length > 0) {
+            res(true);
+            return;
+          }
+          await sleep(1000);
+        } while (this.mountedProcess);
+        rej(
+          "The process is no longer mounted, and base files were never visible."
+        );
       });
 
       await filesAvailable;

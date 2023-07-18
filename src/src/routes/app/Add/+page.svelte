@@ -1,7 +1,13 @@
 <script lang="ts">
+  import AzureRepo from "$lib/forms/AzureRepo.svelte";
+  import GoogleCloudRepo from "$lib/forms/GoogleCloudRepo.svelte";
   import LocalRepo from "$lib/forms/LocalRepo.svelte";
+  import OpenStackRepo from "$lib/forms/OpenStackRepo.svelte";
   import RadioInput from "$lib/forms/RadioInput.svelte";
+  import RcloneRepo from "$lib/forms/RcloneRepo.svelte";
+  import RestRepo from "$lib/forms/RestRepo.svelte";
   import S3Repo from "$lib/forms/S3Repo.svelte";
+  import SftpRepo from "$lib/forms/SftpRepo.svelte";
   import TextInput from "$lib/forms/TextInput.svelte";
 
   let password: string;
@@ -39,8 +45,13 @@
       bind:value={backendType}
       class="justify-items-center"
       options={[
-        { label: "S3-Compatible", value: "S3" },
         { label: "Local", value: "local" },
+        { label: "REST", value: "rest" },
+        { label: "S3-Compatible", value: "S3" },
+        { label: "Azure", value: "azure" },
+        { label: "Google Cloud Platform", value: "gcp" },
+        { label: "OpenStack Swift", value: "openstack_swift" },
+        { label: "RClone", value: "rclone" },
       ]}
     />
 
@@ -48,6 +59,18 @@
       <S3Repo />
     {:else if backendType == "local"}
       <LocalRepo />
+    {:else if backendType == "rest"}
+      <RestRepo />
+    {:else if backendType == "gcp"}
+      <GoogleCloudRepo />
+    {:else if backendType == "azure"}
+      <AzureRepo />
+    {:else if backendType == "sftp"}
+      <SftpRepo />
+    {:else if backendType == "rclone"}
+      <RcloneRepo />
+    {:else if backendType == "openstack_swift"}
+      <OpenStackRepo />
     {/if}
   </div>
 

@@ -2,9 +2,16 @@ import { promisify } from "util";
 import fs from "fs";
 import type Repo from "./models/repo";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
-import { createCipheriv, createHash, randomBytes, randomUUID } from "crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+  randomUUID,
+} from "crypto";
 import path, { join } from "path";
 import type { Readable } from "node:stream";
+import { stdout } from "process";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
@@ -165,6 +172,34 @@ export default class Restic {
     );
   });
 
+  static async DecodeRepo(name: string): Promise<Map<string, string>> {
+    let storagePath = join(Restic.basepath, name);
+    if (!fs.existsSync(storagePath)) {
+      throw "The repo";
+    } else {
+      try {
+        let key = await Restic.Key;
+
+        let file = JSON.parse(
+          await fs.promises.readFile(storagePath, "utf8")
+        ) as CryptedFile;
+
+        let cipher = createDecipheriv(
+          file.algorithm,
+          key,
+          Buffer.from(file.iv, "hex")
+        );
+
+        let data = cipher.update(Buffer.from(file.payload, "hex"));
+        data = Buffer.concat([data, cipher.final()]);
+
+        return JSON.parse(data.toString("utf8"));
+      } catch (err) {
+        throw err;
+      }
+    }
+  }
+
   static async SaveRepo(name: string, config: Map<string, string>) {
     let storagePath = join(Restic.basepath, name);
     if (fs.existsSync(storagePath)) {
@@ -177,15 +212,20 @@ export default class Restic {
         let cipher = createCipheriv(algorithm, key, iv);
 
         fs.createWriteStream(storagePath);
-        let data = cipher.update(JSON.stringify(config), "utf8", "hex");
-        data += cipher.final();
+        let data = cipher.update(JSON.stringify(config), "utf8");
+        data = Buffer.concat([data, cipher.final()]);
 
         await fs.promises.writeFile(
           storagePath,
-          JSON.stringify({ iv: iv.toString("hex"), algorithm, payload: data })
+          JSON.stringify({
+            iv: iv.toString("hex"),
+            algorithm,
+            payload: data.toString("hex"),
+          })
         );
       } catch (err) {
-        console.error(err);
+        stdout.write(JSON.stringify(err));
+        throw "Unable to store the config, the error has been logged, please try again later.";
       }
     }
   }

@@ -3,12 +3,12 @@
   import GoogleCloudRepo from "$lib/forms/GoogleCloudRepo.svelte";
   import LocalRepo from "$lib/forms/LocalRepo.svelte";
   import OpenStackRepo from "$lib/forms/OpenStackRepo.svelte";
-  import RadioInput from "$lib/forms/RadioInput.svelte";
   import RcloneRepo from "$lib/forms/RcloneRepo.svelte";
   import RestRepo from "$lib/forms/RestRepo.svelte";
   import S3Repo from "$lib/forms/S3Repo.svelte";
   import SftpRepo from "$lib/forms/SftpRepo.svelte";
   import TextInput from "$lib/forms/TextInput.svelte";
+  import SelectInput from "$lib/forms/SelectInput.svelte";
 
   let password: string;
   let title: string;
@@ -40,8 +40,8 @@
       placeholder="A friendly name for this configuration."
     />
 
-    <RadioInput
-      title="Repository Type"
+    <SelectInput
+      label="Repository Type"
       bind:value={backendType}
       class="justify-items-center"
       options={[

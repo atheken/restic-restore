@@ -1,21 +1,22 @@
 <script lang="ts">
   import TextInput from "./TextInput.svelte";
 
-  let accountName: string;
+  export let config: any;
+
   let accountKey: string;
   let container: string;
   let path: string;
 </script>
 
 <TextInput
-  bind:value={accountName}
+  bind:value={config.AZURE_ACCOUNT_NAME}
   placeholder="Azure Account Name"
   label="Account Name"
   pattern=".+"
 />
 
 <TextInput
-  bind:value={accountKey}
+  bind:value={config.AZURE_ACCOUNT_KEY}
   type="password"
   placeholder="Azure Account Key"
   label="Account Key"
@@ -23,15 +24,15 @@
 />
 
 <TextInput
-  bind:value={container}
+  bind:value={config.REPO_ENDPOINT}
   placeholder="foo"
   label="Blob Container"
   pattern=".+"
 />
 
 <TextInput
-  bind:value={path}
+  bind:value={config.REPO_PATH}
   placeholder="/"
-  label="Respository Path"
+  label="Repository Path"
   pattern="/.*"
 />

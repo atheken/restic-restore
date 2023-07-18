@@ -10,9 +10,15 @@
   import TextInput from "$lib/forms/TextInput.svelte";
   import SelectInput from "$lib/forms/SelectInput.svelte";
 
+<<<<<<< Updated upstream
   let name: string;
   let err: any;
   let backendType: string;
+=======
+  let password: string;
+  let title: string;
+  let config: any;
+>>>>>>> Stashed changes
 
   async function storeConfig() {
     try {
@@ -61,21 +67,21 @@
     />
 
     {#if backendType == "S3"}
-      <S3Repo />
+      <S3Repo bind:config />
     {:else if backendType == "local"}
-      <LocalRepo />
+      <LocalRepo bind:config />
     {:else if backendType == "rest"}
-      <RestRepo />
+      <RestRepo bind:config />
     {:else if backendType == "gcp"}
-      <GoogleCloudRepo />
+      <GoogleCloudRepo bind:config />
     {:else if backendType == "azure"}
-      <AzureRepo />
+      <AzureRepo bind:config />
     {:else if backendType == "sftp"}
-      <SftpRepo />
+      <SftpRepo bind:config />
     {:else if backendType == "rclone"}
-      <RcloneRepo />
+      <RcloneRepo bind:config />
     {:else if backendType == "openstack_swift"}
-      <OpenStackRepo />
+      <OpenStackRepo bind:config />
     {/if}
   </div>
 

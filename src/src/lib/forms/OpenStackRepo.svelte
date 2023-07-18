@@ -1,21 +1,19 @@
 <script lang="ts">
   import TextInput from "./TextInput.svelte";
-
-  let container: string;
-  let path: string;
+  export let config: any;
 </script>
 
 <TextInput
   label="Swift Container"
   pattern=".+"
   placeholder="foo"
-  bind:value={container}
+  bind:value={config.REPO_ENDPOINT}
 />
 <TextInput
   label="Swift Container Path"
   pattern="/.*"
   placeholder="/"
-  bind:value={path}
+  bind:value={config.REPO_PATH}
 />
 
 <div class="text-center italic text-neutral-500">

@@ -1,11 +1,11 @@
 <script lang="ts">
   import TextInput from "./TextInput.svelte";
 
-  let value: string;
+  export let config: any;
 </script>
 
 <TextInput
-  bind:value
+  bind:value={config.REPO_ENDPOINT}
   placeholder="https://restic.example.com/repo"
   label="REST Base Url"
   pattern="^http(s)://.+"

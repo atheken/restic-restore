@@ -1,19 +1,21 @@
 <script lang="ts">
   import TextInput from "./TextInput.svelte";
 
+  export let config: any;
+
   let remoteName = "myremote";
   let remotePath = "/";
 </script>
 
 <TextInput
-  bind:value={remoteName}
+  bind:value={config.REPO_ENDPOINT}
   label="RClone Remote Name"
   pattern="[\S_^-]+"
   placeholder="The name of the remote that will be used by rclone."
 />
 
 <TextInput
-  bind:value={remotePath}
+  bind:value={config.REPO_PATH}
   label="RClone Remote Path"
   pattern="/[\S]*"
   placeholder="/"

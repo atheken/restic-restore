@@ -1,40 +1,33 @@
 <script lang="ts">
   import TextInput from "./TextInput.svelte";
-
-  let keyId = "";
-  let keySecret = "";
-  let s3Endpoint = "";
-  let repoPath = "";
-  let hidden = false;
+  export let config: any;
 </script>
 
-{#if !hidden}
-  <TextInput
-    pattern=".+"
-    placeholder="Key Name"
-    bind:value={keyId}
-    label="Access Key ID"
-  />
+<TextInput
+  pattern=".+"
+  placeholder="Key Name"
+  bind:value={config.AWS_ACCESS_KEY_ID}
+  label="Access Key ID"
+/>
 
-  <TextInput
-    pattern=".+"
-    type="password"
-    placeholder="Key Secret"
-    bind:value={keySecret}
-    label="Access Key Secret"
-  />
+<TextInput
+  pattern=".+"
+  type="password"
+  placeholder="Key Secret"
+  bind:value={config.AWS_SECRET_ACCESS_KEY}
+  label="Access Key Secret"
+/>
 
-  <TextInput
-    pattern="http(s)?://.+"
-    placeholder="https://s3.us-east-2.amazonaws.com"
-    bind:value={s3Endpoint}
-    label="S3 Endpoint"
-  />
+<TextInput
+  pattern="http(s)?://.+"
+  placeholder="https://s3.us-east-2.amazonaws.com"
+  bind:value={config.REPO_ENDPOINT}
+  label="S3 Endpoint"
+/>
 
-  <TextInput
-    pattern="/.+"
-    placeholder="/<bucket_name>/<restic_path...>"
-    bind:value={repoPath}
-    label="Restic Path"
-  />
-{/if}
+<TextInput
+  pattern="/.+"
+  placeholder="/<bucket_name>/<restic_path...>"
+  bind:value={config.REPO_PATH}
+  label="Repository Path"
+/>

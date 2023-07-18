@@ -47,6 +47,7 @@
       options={[
         { label: "Local", value: "local" },
         { label: "REST", value: "rest" },
+        { label: "SFTP", value: "sftp" },
         { label: "S3-Compatible", value: "S3" },
         { label: "Azure", value: "azure" },
         { label: "Google Cloud Platform", value: "gcp" },

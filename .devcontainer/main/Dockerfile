@@ -4,6 +4,8 @@ SHELL ["/bin/bash", "-c" ]
 RUN npm install -g tsx typescript vite
 ENV SHELL=/bin/bash
 ENV RESTIC_CACHE_DIR=/restic-cache
+ENV RESTORE_SAVE_KEY_FILE=''
+ENV RESTORE_SAVE_KEY='the-storage-key-is-here-with-sufficient-length-for-aes256'
 VOLUME /restic-cache
 VOLUME /configs
 VOLUME /data

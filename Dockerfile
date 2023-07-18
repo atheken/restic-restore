@@ -21,6 +21,8 @@ RUN echo '; process.on("SIGTERM", () => { process.exit(0) });' >> ./index.js
 RUN npm i --omit dev
 ENV NODE_ENV=production
 ENV RESTIC_CACHE_DIR=/cache
+ENV RESTORE_SAVE_KEY_FILE=''
+ENV RESTORE_SAVE_KEY=''
 ENV PORT=8888
 VOLUME /cache
 VOLUME /configs

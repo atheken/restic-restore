@@ -10,22 +10,27 @@
   import TextInput from "$lib/forms/TextInput.svelte";
   import SelectInput from "$lib/forms/SelectInput.svelte";
 
-  let password: string;
-  let title: string;
-  let config: string;
+  let name: string;
+  let err: any;
+  let backendType: string;
 
   async function storeConfig() {
-    let result = await fetch("./", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password, title, config }),
-    });
-    let payload = (await result.json()) as { success: boolean };
+    try {
+      let result = await fetch("./", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, config: { test: "value" } }),
+      });
 
-    console.log(payload);
+      let payload = (await result.json()) as { success: boolean; err: any };
+      if (payload.success) {
+      } else {
+        err = payload.err;
+      }
+    } catch {
+      err = "Storing of the configuration failed, please try again.";
+    }
   }
-
-  let backendType: string;
 </script>
 
 <div class="grid w-full gap-3 justify-items-center">
@@ -35,7 +40,7 @@
   <div class="w-2/3 grid gap-[1em]">
     <TextInput
       label="Friendly Name"
-      bind:value={title}
+      bind:value={name}
       pattern="^[0-9a-z_.]+$"
       placeholder="A friendly name for this configuration."
     />
@@ -43,7 +48,6 @@
     <SelectInput
       label="Repository Type"
       bind:value={backendType}
-      class="justify-items-center"
       options={[
         { label: "Local", value: "local" },
         { label: "REST", value: "rest" },

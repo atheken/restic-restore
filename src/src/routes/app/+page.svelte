@@ -15,6 +15,6 @@
     {#each data.repos as r}
       <Card link="./{r.Id}" title={r.Id} />
     {/each}
-    <Card link="./Add" title="Add Repo" imgSrc="{base}/icons/add.svg" />
+    <Card link="./add" title="Add Repo" imgSrc="{base}/icons/add.svg" />
   </div>
 </div>

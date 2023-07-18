@@ -2,7 +2,7 @@ import { promisify } from "util";
 import fs from "fs";
 import type Repo from "./models/repo";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
-import { randomUUID } from "crypto";
+import { createCipheriv, createHash, randomBytes, randomUUID } from "crypto";
 import path, { join } from "path";
 import type { Readable } from "node:stream";
 
@@ -143,6 +143,58 @@ export default class Restic {
 
     return task.stdout;
   }
+
+  static Key: Promise<Buffer> = new Promise(async (res, rej) => {
+    let h = createHash("shake256", { outputLength: 32 });
+    let content = process.env.RESTORE_SAVE_KEY || "";
+    if (process.env.RESTORE_SAVE_KEY_FILE || "" != "") {
+      content = await fs.promises.readFile(
+        process.env.RESTORE_SAVE_KEY_FILE!,
+        "utf8"
+      );
+    }
+
+    if (content.length > 0) {
+      let key = h.update(content);
+      res(key.digest());
+    }
+
+    rej(
+      "You must provide a key when launching this process in order to encrypt and decrypt the config files that " +
+        "are stored on disk. You may use `RESTORE_SAVE_KEY_FILE` or `RESTORE_SAVE_KEY` for this purpose, depending on how your secrets are managed."
+    );
+  });
+
+  static async SaveRepo(name: string, config: Map<string, string>) {
+    let storagePath = join(Restic.basepath, name);
+    if (fs.existsSync(storagePath)) {
+      throw "A repository with the specified name already exists, please select another and try again.";
+    } else {
+      try {
+        let key = await Restic.Key;
+        let iv = randomBytes(16);
+        let algorithm = "aes-256-cbc";
+        let cipher = createCipheriv(algorithm, key, iv);
+
+        fs.createWriteStream(storagePath);
+        let data = cipher.update(JSON.stringify(config), "utf8", "hex");
+        data += cipher.final();
+
+        await fs.promises.writeFile(
+          storagePath,
+          JSON.stringify({ iv: iv.toString("hex"), algorithm, payload: data })
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+}
+
+interface CryptedFile {
+  iv: string;
+  algorithm: string;
+  payload: string;
 }
 
 export interface FileStat {

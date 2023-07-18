@@ -10,22 +10,17 @@
   import TextInput from "$lib/forms/TextInput.svelte";
   import SelectInput from "$lib/forms/SelectInput.svelte";
 
-<<<<<<< Updated upstream
   let name: string;
   let err: any;
   let backendType: string;
-=======
-  let password: string;
-  let title: string;
-  let config: any;
->>>>>>> Stashed changes
+  let config: any = {};
 
   async function storeConfig() {
     try {
       let result = await fetch("./", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, config: { test: "value" } }),
+        body: JSON.stringify({ name, config }),
       });
 
       let payload = (await result.json()) as { success: boolean; err: any };

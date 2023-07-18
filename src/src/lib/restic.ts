@@ -69,7 +69,7 @@ export default class Restic {
 
       this.mountedProcess = true;
 
-      let p = spawn("restic", ["mount", this.basePath], {
+      let p = spawn("restic", ["mount", "--no-lock", this.basePath], {
         env: (await this.loadConfig()) as NodeJS.ProcessEnv,
       });
 

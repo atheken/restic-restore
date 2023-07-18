@@ -1,45 +1,54 @@
 <script lang="ts">
+  import LocalRepo from "$lib/forms/LocalRepo.svelte";
+  import RadioInput from "$lib/forms/RadioInput.svelte";
+  import S3Repo from "$lib/forms/S3Repo.svelte";
+  import TextInput from "$lib/forms/TextInput.svelte";
+
   let password: string;
   let title: string;
   let config: string;
 
-  async function storeConfig() {}
+  async function storeConfig() {
+    let result = await fetch("./", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password, title, config }),
+    });
+    let payload = (await result.json()) as { success: boolean };
+
+    console.log(payload);
+  }
+
+  let backendType: string;
 </script>
 
 <div class="grid w-full gap-3 justify-items-center">
   <div class="text-lg text-center font-medium">
     Add a Repository Configuration
   </div>
-  <div class="w-2/3">
-    <label for="name" class="block text-sm"> Friendly Name:</label>
-    <input
-      id="name"
+  <div class="w-2/3 grid gap-[1em]">
+    <TextInput
+      label="Friendly Name"
       bind:value={title}
-      type="text"
-      placeholder="A friendly name for this configuration."
       pattern="^[0-9a-z_.]+$"
-      class="w-full"
+      placeholder="A friendly name for this configuration."
     />
-  </div>
-  <div class="w-2/3">
-    <label class="block text-sm" for="config">Configuration:</label>
-    <textarea
-      name="config"
-      bind:value={config}
-      rows="10"
-      placeholder="A config file of restic env vars, one per line."
-      class="w-full"
+
+    <RadioInput
+      title="Repository Type"
+      bind:value={backendType}
+      class="justify-items-center"
+      options={[
+        { label: "S3-Compatible", value: "S3" },
+        { label: "Local", value: "local" },
+      ]}
     />
-  </div>
-  <div class="w-2/3">
-    <label for="password" class="block text-sm">Repository Password:</label>
-    <input
-      id="password"
-      bind:value={password}
-      placeholder="The repository password..."
-      type="password"
-      class="w-full"
-    />
+
+    {#if backendType == "S3"}
+      <S3Repo />
+    {:else if backendType == "local"}
+      <LocalRepo />
+    {/if}
   </div>
 
   <button

@@ -13,6 +13,7 @@
   import ActiveButton from "$lib/forms/ActiveButton.svelte";
   import { setPath } from "$lib/Navigation";
   import { base } from "$app/paths";
+  import { onMount } from "svelte";
 
   let name: string;
   let err: any;
@@ -41,7 +42,9 @@
     }
   }
 
-  setPath(true, { link: `${base}/add`, name: "Add New Repository" });
+  onMount(() => {
+    setPath(true, { link: `${base}/app/add`, name: "Add New Repository" });
+  });
 </script>
 
 <div class="text-lg text-center font-medium">

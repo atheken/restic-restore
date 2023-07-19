@@ -8,11 +8,11 @@ interface PathItem {
 
 export let stack = writable<PathItem[]>();
 
-export const APP_PATH = `${base}`;
+export const APP_PATH = `${base}/app/`;
 
 export function setPath(prependHome: boolean, ...path: PathItem[]) {
   if (prependHome) {
-    path.push({
+    path.unshift({
       link: APP_PATH,
       name: "Home",
     });

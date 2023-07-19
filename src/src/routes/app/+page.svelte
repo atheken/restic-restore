@@ -13,8 +13,12 @@
 <div class="w-full">
   <div class="grid grid-cols-3 gap-2">
     {#each data.repos as r}
-      <Card link="./{r.Id}" title={r.Id} />
+      <Card link="{base}/app/{r.Id}" title={r.Id} />
     {/each}
-    <Card link="./add" title="Add Repo" imgSrc="{base}/icons/add.svg" />
+    <Card
+      link="{base}/app/add"
+      title="Add Repo"
+      imgSrc="{base}/icons/add.svg"
+    />
   </div>
 </div>

@@ -12,7 +12,7 @@
 <nav aria-label="Breadcrumb">
   <ol class="flex items-center gap-1 text-sm text-gray-600 p-2 border-b-4">
     {#each $crumbs as c}
-      <li class="after:content-['/']">
+      <li class="after:content-['/'] last:after:content-['']">
         <a class="no-underline" href={c.link}>{c.name}</a>
       </li>
     {/each}

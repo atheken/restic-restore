@@ -10,13 +10,18 @@ export let stack = writable<PathItem[]>();
 
 export const APP_PATH = `${base}`;
 
-export default function setNav(path: string[] = []) {
-  let pathItems: PathItem[] = [
-    {
+export function setPath(prependHome: boolean, ...path: PathItem[]) {
+  if (prependHome) {
+    path.push({
       link: APP_PATH,
       name: "Home",
-    },
-  ];
+    });
+  }
+  stack.set(path);
+}
+
+export function setNav(path: string[] = []) {
+  let pathItems = [];
 
   let prefix = [];
   for (let p of path) {
@@ -28,5 +33,5 @@ export default function setNav(path: string[] = []) {
     });
   }
 
-  stack.set(pathItems);
+  setPath(true, ...pathItems);
 }

@@ -1,4 +1,4 @@
-import Restic from "$lib/restic";
+import Restic from "$lib/Restic";
 
 export async function load({ params }) {
   // we should handle urlencoded parts...

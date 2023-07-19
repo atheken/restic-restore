@@ -1,7 +1,7 @@
 <script lang="ts">
   import { base } from "$app/paths";
   import Card from "$lib/Card.svelte";
-  import setNav from "$lib/Navigation";
+  import { setNav } from "$lib/Navigation";
   import { onMount } from "svelte";
   import type { PageData } from "./$types";
 

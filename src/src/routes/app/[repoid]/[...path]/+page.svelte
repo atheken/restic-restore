@@ -3,8 +3,8 @@
   import { page } from "$app/stores";
   import { relative } from "$lib/Helpers";
   import { filesize } from "filesize";
-  import setNav from "$lib/Navigation";
-  import type { FileStat } from "$lib/restic";
+  import { setNav } from "$lib/Navigation";
+  import type { FileStat } from "$lib/Restic";
   import { derived } from "svelte/store";
 
   let repoid = derived(page, (p) => p.params.repoid);

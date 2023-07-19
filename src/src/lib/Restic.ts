@@ -12,6 +12,7 @@ import {
 import path, { join } from "path";
 import type { Readable } from "node:stream";
 import { stdout } from "process";
+import { Cryptor } from "./Cryptor";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
@@ -151,76 +152,78 @@ export default class Restic {
     return task.stdout;
   }
 
-  static Key: Promise<Buffer> = new Promise(async (res, rej) => {
-    let h = createHash("shake256", { outputLength: 32 });
-    let content = process.env.RESTORE_SAVE_KEY || "";
-    if (process.env.RESTORE_SAVE_KEY_FILE || "" != "") {
-      content = await fs.promises.readFile(
-        process.env.RESTORE_SAVE_KEY_FILE!,
-        "utf8"
-      );
-    }
-
-    if (content.length > 0) {
-      let key = h.update(content);
-      res(key.digest());
-    }
-
-    rej(
-      "You must provide a key when launching this process in order to encrypt and decrypt the config files that " +
-        "are stored on disk. You may use `RESTORE_SAVE_KEY_FILE` or `RESTORE_SAVE_KEY` for this purpose, depending on how your secrets are managed."
-    );
-  });
-
-  static async DecodeRepo(name: string): Promise<Map<string, string>> {
+  static async DecodeRepo(
+    name: string,
+    key: string
+  ): Promise<Map<string, string>> {
     let storagePath = join(Restic.basepath, name);
     if (!fs.existsSync(storagePath)) {
       throw "The repo";
     } else {
       try {
-        let key = await Restic.Key;
-
         let file = JSON.parse(
           await fs.promises.readFile(storagePath, "utf8")
         ) as CryptedFile;
 
-        let cipher = createDecipheriv(
-          file.algorithm,
-          key,
-          Buffer.from(file.iv, "hex")
-        );
+        let keyringLookup = new Cryptor(key, file.iv, file.algorithm);
 
-        let data = cipher.update(Buffer.from(file.payload, "hex"));
-        data = Buffer.concat([data, cipher.final()]);
+        for (var { name, key } of file.keys) {
+          try {
+            let payloadLookup = new Cryptor(
+              await keyringLookup.DecryptString(key),
+              file.iv,
+              file.algorithm
+            );
 
-        return JSON.parse(data.toString("utf8"));
+            let payload = await payloadLookup.DecryptString(file.payload);
+            return JSON.parse(payload);
+          } catch {
+            process.stdout.write(
+              `Attempted to decrypt the '${name}' repo using the '${name}', but was not successful.`
+            );
+          }
+        }
+        throw "The specified key cannot unlock the repo.";
       } catch (err) {
         throw err;
       }
     }
   }
 
-  static async SaveRepo(name: string, config: Map<string, string>) {
+  static async SaveRepo(
+    name: string,
+    primaryKey: string,
+    config: Map<string, string>
+  ) {
     let storagePath = join(Restic.basepath, name);
     if (fs.existsSync(storagePath)) {
       throw "A repository with the specified name already exists, please select another and try again.";
     } else {
       try {
-        let key = await Restic.Key;
+        let algorithm = "aws-256-cbc";
         let iv = randomBytes(16);
-        let algorithm = "aes-256-cbc";
-        let cipher = createCipheriv(algorithm, key, iv);
+        let keyCryptor = new Cryptor(primaryKey, iv, algorithm);
 
-        fs.createWriteStream(storagePath);
-        let data = cipher.update(JSON.stringify(config), "utf8");
-        data = Buffer.concat([data, cipher.final()]);
+        // since we are creating a new repo, we generate a key on the fly:
+        let payloadKey = randomBytes(32).toString("hex");
+        let payloadCryptor = new Cryptor(payloadKey, iv, algorithm);
 
+        // This may seem a bit convoluted, but the idea is that in the future, multiple users
+        // could have multiple keys to access a specified repo. The primary key is "double encrypted",
+        // but more keyring entries might be added/updated using the same.
         await fs.promises.writeFile(
           storagePath,
           JSON.stringify({
+            version: 1,
             iv: iv.toString("hex"),
+            keys: [
+              {
+                name: "primary",
+                key: await keyCryptor.EncryptString(payloadKey),
+              },
+            ],
             algorithm,
-            payload: data.toString("hex"),
+            payload: await payloadCryptor.EncryptString(JSON.stringify(config)),
           })
         );
       } catch (err) {
@@ -232,9 +235,16 @@ export default class Restic {
 }
 
 interface CryptedFile {
+  version: 1;
   iv: string;
   algorithm: string;
   payload: string;
+  keys: KeyRingEntry[];
+}
+
+interface KeyRingEntry {
+  name: string;
+  key: string;
 }
 
 export interface FileStat {

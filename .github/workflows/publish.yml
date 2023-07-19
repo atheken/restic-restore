@@ -34,7 +34,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:dev
-        if: $GITHUB_REF_TYPE == 'branch' && $GITHUB_HEAD_REF == 'master'
+        if: ${{github.ref_type}} == 'branch' && ${{ github.ref_name }} == 'master'
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -42,5 +42,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:latest,${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:$GITHUB_HEAD_REF
-        if: $GITHUB_REF_TYPE == 'tag'
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:latest,${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:${{ github.ref_name }}
+        if: ${{github.ref_type}} == 'tag'

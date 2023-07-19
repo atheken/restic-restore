@@ -26,6 +26,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Build and push (dev)
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          file: ./Dockerfile
+          push: true
+          tags:
+            - ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:dev
+        if: $GITHUB_REF_TYPE == 'branch' && $GITHUB_HEAD_REF == 'master'
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -33,4 +43,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:latest
+          tags:
+            - ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:latest
+            - ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:$GITHUB_HEAD_REF
+        if: $GITHUB_REF_TYPE == 'tag'

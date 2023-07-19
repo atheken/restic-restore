@@ -1,4 +1,4 @@
-import Restic from "$lib/restic";
+import Restic from "$lib/Restic";
 import { Readable } from "stream";
 
 interface paramsStruct {

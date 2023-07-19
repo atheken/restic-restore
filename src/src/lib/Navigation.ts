@@ -26,7 +26,7 @@ export function setNav(path: string[] = []) {
   let prefix = [];
   for (let p of path) {
     prefix.push(p);
-    let current = "/" + prefix.join("/");
+    let current = prefix.join("/");
     pathItems.push({
       name: p,
       link: `${APP_PATH}${current}`,

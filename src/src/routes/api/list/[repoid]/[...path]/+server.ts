@@ -1,4 +1,4 @@
-import Restic from "$lib/restic";
+import Restic from "$lib/Restic";
 import { json } from "@sveltejs/kit";
 
 export async function GET({ params: { repoid, path } }) {

@@ -152,13 +152,22 @@ export default class Restic {
     return task.stdout;
   }
 
-  static async DecodeRepo(
+  static async ValidateKey(repo: string, key: string): Promise<boolean> {
+    try {
+      let result = await this.DecodeRepo(repo, key);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  private static async DecodeRepo(
     name: string,
     key: string
   ): Promise<Map<string, string>> {
     let storagePath = join(Restic.basepath, name);
     if (!fs.existsSync(storagePath)) {
-      throw "The repo";
+      throw "The repo specified does not exist. Please check to make sure the configuration is still available.";
     } else {
       try {
         let file = JSON.parse(
@@ -200,7 +209,7 @@ export default class Restic {
       throw "A repository with the specified name already exists, please select another and try again.";
     } else {
       try {
-        let algorithm = "aws-256-cbc";
+        let algorithm = "aes-256-cbc";
         let iv = randomBytes(16);
         let keyCryptor = new Cryptor(primaryKey, iv, algorithm);
 

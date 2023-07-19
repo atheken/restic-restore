@@ -14,6 +14,9 @@
   import { setPath } from "$lib/Navigation";
   import { base } from "$app/paths";
   import { onMount } from "svelte";
+  import EnvironmentVariableEditor, {
+    type KeyValuePair,
+  } from "$lib/forms/EnvironmentVariableEditor.svelte";
 
   let name: string;
   let err: any;
@@ -23,13 +26,19 @@
   let step1valid = false;
   let step2valid = false;
   let accessKey = "";
+  let envConfig: KeyValuePair[] = [];
 
   async function storeConfig() {
     try {
+      let combinedConfig: any = Object.assign({}, config);
+      for (var i of envConfig) {
+        combinedConfig[i.name] = i.value;
+      }
+
       let result = await fetch("./", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, accessKey, config }),
+        body: JSON.stringify({ name, accessKey, config: combinedConfig }),
       });
 
       let payload = (await result.json()) as { success: boolean; err: any };
@@ -100,6 +109,7 @@
       {:else if backendType == "openstack_swift"}
         <OpenStackRepo bind:config />
       {/if}
+      <EnvironmentVariableEditor bind:envConfig />
       <div class="flex w-full place-content-center">
         <ActiveButton enabled={step1valid} class="w-1/2 my-5"
           >Next...</ActiveButton

@@ -17,6 +17,7 @@
   import EnvironmentVariableEditor, {
     type KeyValuePair,
   } from "$lib/forms/EnvironmentVariableEditor.svelte";
+  import type { CreateRepoRequest } from "$lib/Restic";
 
   let name: string;
   let err: any;
@@ -25,7 +26,7 @@
   let step = 1;
   let step1valid = false;
   let step2valid = false;
-  let accessKey = "";
+  let primaryKey = "";
   let envConfig: KeyValuePair[] = [];
 
   async function storeConfig() {
@@ -35,16 +36,23 @@
         combinedConfig[i.name] = i.value;
       }
 
+      let payload: CreateRepoRequest = {
+        name,
+        primaryKey,
+        config,
+        type: backendType,
+      };
+
       let result = await fetch("./", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, accessKey, config: combinedConfig }),
+        body: JSON.stringify(payload),
       });
 
-      let payload = (await result.json()) as { success: boolean; err: any };
-      if (payload.success) {
+      let response = (await result.json()) as { success: boolean; err: any };
+      if (response.success) {
       } else {
-        err = payload.err;
+        err = response.err;
       }
     } catch {
       err = "Storing of the configuration failed, please try again.";
@@ -84,15 +92,15 @@
           { label: "Local", value: "local" },
           { label: "REST", value: "rest" },
           { label: "SFTP", value: "sftp" },
-          { label: "S3-Compatible", value: "S3" },
+          { label: "S3-Compatible", value: "s3" },
           { label: "Azure", value: "azure" },
           { label: "Google Cloud Platform", value: "gcp" },
-          { label: "OpenStack Swift", value: "openstack_swift" },
+          { label: "OpenStack Swift", value: "swift" },
           { label: "RClone", value: "rclone" },
         ]}
       />
 
-      {#if backendType == "S3"}
+      {#if backendType == "s3"}
         <S3Repo bind:config />
       {:else if backendType == "local"}
         <LocalRepo bind:config />
@@ -106,7 +114,7 @@
         <SftpRepo bind:config />
       {:else if backendType == "rclone"}
         <RcloneRepo bind:config />
-      {:else if backendType == "openstack_swift"}
+      {:else if backendType == "swift"}
         <OpenStackRepo bind:config />
       {/if}
       <EnvironmentVariableEditor bind:envConfig />
@@ -133,7 +141,7 @@
     <div class="w-2/3 grid gap-[1em]">
       <RepoCredentialsInput
         bind:repoPassword={config.RESTIC_PASSWORD}
-        bind:accessKey
+        bind:primaryKey
       />
       <div class="flex w-full place-content-center gap-2 text-blue-500">
         <button class="underline" on:click={() => (step = 1)}>&lt; Back</button>

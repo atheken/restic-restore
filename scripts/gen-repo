@@ -9,7 +9,7 @@ sourcepath=$(dirname $(readlink -f $0))
 
 trap _exit EXIT
 
-scratch=$sourcepath"/../test-repo"
+scratch=${1:-sourcepath"/../test-repo"}
 rm -rf $scratch
 mkdir -p $scratch
 pushd $scratch

@@ -2,7 +2,7 @@
   import TextInput from "./TextInput.svelte";
 
   export let repoPassword: string;
-  export let accessKey: string;
+  export let primaryKey: string;
 </script>
 
 <TextInput
@@ -18,7 +18,7 @@
   pattern="^[\S]{'{10,}'}$"
   placeholder="***"
   label="Access Key"
-  bind:value={accessKey}
+  bind:value={primaryKey}
   type="password"
   validationMessage="The access key must be at least 10 non-whitespace characters."
 />

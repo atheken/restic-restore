@@ -2,13 +2,7 @@ import { promisify } from "util";
 import fs from "fs";
 import type Repo from "./models/repo";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
-import {
-  createCipheriv,
-  createDecipheriv,
-  createHash,
-  randomBytes,
-  randomUUID,
-} from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import path, { join } from "path";
 import type { Readable } from "node:stream";
 import { stdout } from "process";
@@ -24,6 +18,7 @@ export default class Restic {
   private configPath: string;
   private basePath = `${Restic.mountPath}${randomUUID()}`;
   repoId: string;
+  private loadedConfig: Promise<{ type: string; env: Record<string, string> }>;
 
   static async ListRepos(): Promise<Repo[]> {
     let readdir = promisify(fs.readdir);
@@ -34,39 +29,30 @@ export default class Restic {
     });
   }
 
-  static async Access(repoId: string): Promise<Restic> {
-    let repo = Restic.repos.get(repoId);
-    if (!repo) {
-      repo = new this(repoId);
-      Restic.repos.set(repoId, repo);
+  static async Access(repoId: string, key: string): Promise<Restic> {
+    if (await this.ValidateKey(repoId, key)) {
+      let repo = Restic.repos.get(repoId);
+      if (!repo) {
+        repo = new this(repoId, key);
+        Restic.repos.set(repoId, repo);
+      }
+      return repo;
+    } else {
+      throw "The specified key is not valid.";
     }
-    return repo;
   }
 
-  private constructor(repoId: string) {
+  private constructor(repoId: string, key: string) {
     this.repoId = repoId;
     this.configPath = path.join(Restic.basepath, repoId);
     this.ensureConfig();
+
+    this.loadedConfig = Restic.DecodeRepo(repoId, key);
   }
 
   private ensureConfig() {
     if (!fs.existsSync(this.configPath))
       throw `The specified repo '${this.repoId}' does not exist.`;
-  }
-
-  private async loadConfig(): Promise<NodeJS.ProcessEnv> {
-    this.ensureConfig();
-    let read = promisify(fs.readFile);
-
-    let env = JSON.parse(
-      await read(this.configPath, "utf-8")
-    ) as NodeJS.ProcessEnv;
-
-    if (Restic.cacheDir) {
-      env["RESTIC_CACHE_DIR"] = Restic.cacheDir;
-      env["PATH"] = process.env.PATH;
-    }
-    return env;
   }
 
   private async mount() {
@@ -77,8 +63,19 @@ export default class Restic {
 
       this.mountedProcess = true;
 
+      let { env, type } = await this.loadedConfig;
+      let addedProps: Record<string, string> = {
+        PATH: process.env.PATH!,
+        RESTIC_REPOSITORY: `${type == "local" ? "" : type + ":"}${
+          env.REPO_ENDPOINT
+        }:${env.REPO_PATH}`,
+      };
+      if (Restic.cacheDir) {
+        addedProps.RESTIC_CACHE_DIR = Restic.cacheDir;
+      }
+
       let p = spawn("restic", ["mount", "--no-lock", this.basePath], {
-        env: (await this.loadConfig()) as NodeJS.ProcessEnv,
+        env: Object.assign(env, addedProps),
       });
 
       process.on("SIGINT", () => {
@@ -164,7 +161,7 @@ export default class Restic {
   private static async DecodeRepo(
     name: string,
     key: string
-  ): Promise<Map<string, string>> {
+  ): Promise<{ type: string; env: Record<string, string> }> {
     let storagePath = join(Restic.basepath, name);
     if (!fs.existsSync(storagePath)) {
       throw "The repo specified does not exist. Please check to make sure the configuration is still available.";
@@ -185,7 +182,9 @@ export default class Restic {
             );
 
             let payload = await payloadLookup.DecryptString(file.payload);
-            return JSON.parse(payload);
+            let env = JSON.parse(payload) as Record<string, string>;
+
+            return { type: file.type, env };
           } catch {
             process.stdout.write(
               `Attempted to decrypt the '${name}' repo using the '${name}', but was not successful.`
@@ -199,19 +198,15 @@ export default class Restic {
     }
   }
 
-  static async SaveRepo(
-    name: string,
-    primaryKey: string,
-    config: Map<string, string>
-  ) {
-    let storagePath = join(Restic.basepath, name);
+  static async SaveRepo(options: CreateRepoRequest) {
+    let storagePath = join(Restic.basepath, options.name);
     if (fs.existsSync(storagePath)) {
       throw "A repository with the specified name already exists, please select another and try again.";
     } else {
       try {
         let algorithm = "aes-256-cbc";
         let iv = randomBytes(16);
-        let keyCryptor = new Cryptor(primaryKey, iv, algorithm);
+        let keyCryptor = new Cryptor(options.primaryKey, iv, algorithm);
 
         // since we are creating a new repo, we generate a key on the fly:
         let payloadKey = randomBytes(32).toString("hex");
@@ -222,18 +217,25 @@ export default class Restic {
         // but more keyring entries might be added/updated using the same.
         await fs.promises.writeFile(
           storagePath,
-          JSON.stringify({
-            version: 1,
-            iv: iv.toString("hex"),
-            keys: [
-              {
-                name: "primary",
-                key: await keyCryptor.EncryptString(payloadKey),
-              },
-            ],
-            algorithm,
-            payload: await payloadCryptor.EncryptString(JSON.stringify(config)),
-          })
+          JSON.stringify(
+            {
+              version: 1,
+              algorithm,
+              iv: iv.toString("hex"),
+              keys: [
+                {
+                  name: "primary",
+                  key: await keyCryptor.EncryptString(payloadKey),
+                },
+              ],
+              type: options.type,
+              payload: await payloadCryptor.EncryptString(
+                JSON.stringify(options.config)
+              ),
+            },
+            null,
+            "  "
+          )
         );
       } catch (err) {
         stdout.write(JSON.stringify(err));
@@ -249,6 +251,7 @@ interface CryptedFile {
   algorithm: string;
   payload: string;
   keys: KeyRingEntry[];
+  type: string;
 }
 
 interface KeyRingEntry {
@@ -264,4 +267,11 @@ export interface FileStat {
   size: number;
   name: string;
   parent: string;
+}
+
+export interface CreateRepoRequest {
+  primaryKey: string;
+  config: Map<string, string>;
+  type: string;
+  name: string;
 }

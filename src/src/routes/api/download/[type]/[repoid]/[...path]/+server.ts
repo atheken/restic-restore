@@ -1,18 +1,23 @@
 import Restic from "$lib/Restic";
 import { Readable } from "stream";
+import { parse } from "cookie";
 
-interface paramsStruct {
+interface reqStruct {
   params: {
     repoid: string;
     type: "dir" | "file";
     path: string;
   };
+  request: {
+    headers: Headers;
+  };
 }
 
-export async function GET(params: paramsStruct): Promise<Response> {
-  let { repoid, path, type } = params.params;
+export async function GET(req: reqStruct): Promise<Response> {
+  let { repoid, path, type } = req.params;
+  let key = parse(req.request.headers.get("Cookie") || "")[`repoKey.${repoid}`];
 
-  let repo = await Restic.Access(repoid);
+  let repo = await Restic.Access(repoid, key);
 
   let name = path.split("/").pop();
 

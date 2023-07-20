@@ -1,7 +1,7 @@
-import { AuthorizeAccess } from "$lib/Helpers";
 import Restic from "$lib/Restic";
 import { Readable } from "stream";
 import type { RequestEvent } from "./$types";
+import { AuthorizeAccess } from "$lib/Helpers.server";
 
 export async function GET(req: RequestEvent): Promise<Response> {
   let {
@@ -36,7 +36,11 @@ export async function GET(req: RequestEvent): Promise<Response> {
     .toString()
     .substring(0, 6)}-${name}`;
 
-  let stream = await repo.StreamPath(path.toString(), type, "tar.gz");
+  let stream = await repo.StreamPath(
+    path.toString(),
+    type as "dir" | "file",
+    "tar.gz"
+  );
   let rs = Readable.toWeb(stream) as ReadableStream;
 
   let res = new Response(rs);

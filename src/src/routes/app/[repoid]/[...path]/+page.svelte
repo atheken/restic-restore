@@ -96,7 +96,7 @@
                     <a
                       href={`${base}/api/download/${
                         f.isDirectory ? "dir" : "file"
-                      }/${$repoid}/${$path}${f.name}`}>Download</a
+                      }/${$repoid}/${$path}/${f.name}`}>Download</a
                     >
                   </td>
                 </tr>

@@ -16,7 +16,6 @@ export async function POST(req: RequestEvent): Promise<Response> {
   let cookie = [
     `repoKey.${repoid}=${await AuthCookieHandler.Encrypt(values.key)}`,
     "HttpOnly",
-    "secure",
     "path=/",
     "Expires=0", // Set to a session cookie (expires when the browser is closed)
     "SameSite=strict",

@@ -13,6 +13,7 @@
 
   async function handleAuth(evt: MouseEvent) {
     evt.preventDefault();
+    debugger;
     try {
       let result = await fetch("./", {
         headers: {
@@ -21,12 +22,7 @@
         method: "POST",
         body: JSON.stringify({ key: password }),
       });
-
-      if (result.ok && (await result.json()).success) {
-        await goto(redirect, { replaceState: true });
-      } else {
-        // show some feedback to the user.
-      }
+      await goto(redirect, { replaceState: true });
     } catch (err) {
       console.log(err);
     }

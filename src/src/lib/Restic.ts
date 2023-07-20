@@ -66,9 +66,9 @@ export default class Restic {
       let { env, type } = await this.loadedConfig;
       let addedProps: Record<string, string> = {
         PATH: process.env.PATH!,
-        RESTIC_REPOSITORY: `${type == "local" ? "" : type + ":"}${
-          env.REPO_ENDPOINT
-        }:${env.REPO_PATH}`,
+        RESTIC_REPOSITORY: `${
+          type == "local" ? "" : type + ":" + env.REPO_ENDPOINT + ":"
+        }${env.REPO_PATH}`,
       };
       if (Restic.cacheDir) {
         addedProps.RESTIC_CACHE_DIR = Restic.cacheDir;

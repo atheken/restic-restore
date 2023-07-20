@@ -1,11 +1,12 @@
 <script lang="ts">
   import { base } from "$app/paths";
   import { page } from "$app/stores";
-  import { relative } from "$lib/Helpers";
+  import { authUrl, relative } from "$lib/Helpers";
   import { filesize } from "filesize";
   import { setNav } from "$lib/Navigation";
   import type { FileStat } from "$lib/Restic";
   import { derived } from "svelte/store";
+  import { goto } from "$app/navigation";
 
   let repoid = derived(page, (p) => p.params.repoid);
   let path = derived(page, (p) => p.params.path);
@@ -18,9 +19,15 @@
   setNav($pathname);
 
   async function loadFiles(): Promise<FileStat[]> {
-    return (await (
-      await fetch(`${base}/api/list/${$repoid}/${$path}`)
-    ).json()) as FileStat[];
+    let req = fetch(`${base}/api/list/${$repoid}/${$path}`);
+
+    try {
+      let response = await req;
+      return (await response.json()) as FileStat[];
+    } catch (err) {
+      goto(authUrl($repoid, $page.url.pathname));
+      return [];
+    }
   }
 </script>
 

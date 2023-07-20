@@ -28,7 +28,7 @@ jobs:
 
       - name: Build and push (dev)
         uses: docker/build-push-action@v4
-        if: ${{github.ref_type}} == 'branch' && ${{ github.ref_name }} == 'master'
+        if: ${{ github.ref_type == 'branch' && github.ref_name  == 'master' }}
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -37,7 +37,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:dev
       - name: Build and push
         uses: docker/build-push-action@v4
-        if: ${{github.ref_type}} == 'tag'
+        if: ${{ github.ref_type  == 'tag' }}
         with:
           context: .
           platforms: linux/amd64,linux/arm64

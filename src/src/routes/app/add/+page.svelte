@@ -18,6 +18,7 @@
     type KeyValuePair,
   } from "$lib/forms/EnvironmentVariableEditor.svelte";
   import type { CreateRepoRequest } from "$lib/Restic";
+  import { goto } from "$app/navigation";
 
   let name: string;
   let err: any;
@@ -51,6 +52,14 @@
 
       let response = (await result.json()) as { success: boolean; err: any };
       if (response.success) {
+        // authenticate this session, since they just provided the key.
+        await fetch(`${base}/app/auth/${name}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: primaryKey }),
+        });
+        // redirect to the main repo page.
+        goto(`${base}/app/r/${name}`, { replaceState: true });
       } else {
         err = response.err;
       }

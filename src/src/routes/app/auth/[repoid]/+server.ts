@@ -10,7 +10,6 @@ export async function POST(req: RequestEvent): Promise<Response> {
 
   let values = (await request.json()) as {
     key: string;
-    redirect: string | null;
   };
 
   let cookie = [

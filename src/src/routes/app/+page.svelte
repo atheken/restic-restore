@@ -13,7 +13,7 @@
 <div class="w-full">
   <div class="grid grid-cols-3 gap-2">
     {#each data.repos as r}
-      <Card link="{base}/app/{r.Id}" title={r.Id} />
+      <Card link="{base}/app/r/{r.Id}" title={r.Id} />
     {/each}
     <Card
       link="{base}/app/add"

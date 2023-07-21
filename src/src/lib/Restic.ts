@@ -10,7 +10,7 @@ import { Cryptor } from "./Cryptor";
 
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
-  private static cacheDir: string = process.env?.RESTIC_CACHE_DIR || "";
+  private static cacheDir?: string = process.env?.RESTIC_CACHE_DIR || undefined;
   private static mountPath: string =
     process.env?.RESTIC_MOUNT_DIR || "/tmp/restic-mount/";
   private static repos = new Map<string, Restic>();
@@ -89,6 +89,7 @@ export default class Restic {
       });
 
       p.on("error", () => {
+        p.stderr.pipe(process.stderr);
         this.mountedProcess = false;
       }).on("exit", () => {
         this.mountedProcess = false;
@@ -104,9 +105,7 @@ export default class Restic {
           }
           await sleep(1000);
         } while (this.mountedProcess);
-        rej(
-          "The process is no longer mounted, and base files were never visible."
-        );
+        rej(`The repository '${this.repoId}' did not mount before restic exited. This can happen if the browser session ends prematurely, or there a configuration error.`);
       });
 
       await filesAvailable;

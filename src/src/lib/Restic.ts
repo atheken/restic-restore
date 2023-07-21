@@ -82,6 +82,7 @@ export default class Restic {
 
       let p = spawn("restic", ["mount", "--no-lock", this.basePath], {
         env: Object.assign(env, addedProps),
+        stdio: "pipe",
       });
 
       let handleProcessExit = () => {
@@ -91,6 +92,7 @@ export default class Restic {
       process.on("SIGINT", handleProcessExit);
 
       p.on("error", () => {
+        process.stdout.write(`The process exited with code: ${p.exitCode}.`);
         p.stdout.pipe(process.stdout);
         p.stderr.pipe(process.stderr);
         this.mountedProcess = false;

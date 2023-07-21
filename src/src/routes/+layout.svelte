@@ -1,9 +1,9 @@
 <script lang="ts">
   import Breadcrumbs from "$lib/Breadcrumbs.svelte";
-  import { setNav } from "$lib/Navigation";
+  import { setPath } from "$lib/Navigation";
   import "../app.css";
   import Header from "$lib/Header.svelte";
-  setNav();
+  $: setPath(true);
 </script>
 
 <div class="container mx-auto">

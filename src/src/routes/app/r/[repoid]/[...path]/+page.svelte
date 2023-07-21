@@ -3,22 +3,15 @@
   import { page } from "$app/stores";
   import { authUrl, relative } from "$lib/Helpers";
   import { filesize } from "filesize";
-  import { setNav } from "$lib/Navigation";
+  import { setRepoBrowsePath } from "$lib/Navigation";
   import type { FileStat } from "$lib/Restic";
   import { derived } from "svelte/store";
   import { goto } from "$app/navigation";
 
   let repoid = derived(page, (p) => p.params.repoid);
   let path = derived(page, (p) => p.params.path);
-  let pathname = derived(page, (p) => {
-    let result = decodeURIComponent(p.url.pathname)
-      .split("/")
-      .filter((k) => k.trim() != "");
-    result.shift();
-    return result;
-  });
-  pathname.subscribe(setNav);
-  setNav($pathname);
+
+  $: setRepoBrowsePath($page.url.pathname);
 
   async function loadFiles(): Promise<FileStat[]> {
     let req = fetch(`${base}/api/list/${$repoid}/${$path}`);

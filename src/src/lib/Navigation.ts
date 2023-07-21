@@ -20,16 +20,24 @@ export function setPath(prependHome: boolean, ...path: PathItem[]) {
   stack.set(path);
 }
 
-export function setNav(path: string[] = []) {
-  let pathItems = [];
+export function setRepoBrowsePath(currentPath: string) {
+  let segments = decodeURIComponent(currentPath).split("/");
 
+  //The current path will include the `${base}/app/r/` route, and this is required to get the proper path here.
   let prefix = [];
-  for (let p of path) {
+  while (segments.length > 0) {
+    prefix.unshift(segments.shift());
+    if (segments[0] == "r") {
+      break;
+    }
+  }
+
+  let pathItems = [];
+  for (let p of segments) {
     prefix.push(p);
-    let current = prefix.join("/");
     pathItems.push({
       name: p,
-      link: `${APP_PATH}${current}`,
+      link: `${prefix.join("/")}`,
     });
   }
 

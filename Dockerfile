@@ -9,6 +9,7 @@ RUN vite build
 
 FROM alpine:3.18
 RUN apk add -u nodejs npm rclone restic bash openssh fuse fuse3
+ARG VERSION=unknown
 COPY --from=build /data/build /app
 WORKDIR /app
 COPY ./src/package.json ./
@@ -22,7 +23,7 @@ ENV NODE_ENV=production
 ENV RESTIC_CACHE_DIR=/cache
 ENV RESTIC_MOUNT_DIR=/tmp/restic-mount
 ENV RESTIC_MOUNT_REAP_INTERVAL=600
-ENV VERSION=${GITHUB_SHA:-'unknown'}
+ENV VERSION=${VERSION:-unknown}
 ENV PORT=8888
 VOLUME /cache
 VOLUME /configs

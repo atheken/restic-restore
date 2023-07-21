@@ -66,12 +66,18 @@ export default class Restic {
       let { env, type } = await this.loadedConfig;
       let addedProps: Record<string, string> = {
         PATH: process.env.PATH!,
-        RESTIC_REPOSITORY: `${
-          type == "local" ? "" : type + ":" + env.REPO_ENDPOINT + ":"
-        }${env.REPO_PATH}`,
       };
+
       if (Restic.cacheDir) {
         addedProps.RESTIC_CACHE_DIR = Restic.cacheDir;
+      }
+
+      if (type == "sftp") {
+        /**
+         * TODO: This should write the ssh key to somewhere on disk (or stdin, or fifo).
+         * and then specify that as an additional argument
+         *for the identify file.
+         */
       }
 
       let p = spawn("restic", ["mount", "--no-lock", this.basePath], {

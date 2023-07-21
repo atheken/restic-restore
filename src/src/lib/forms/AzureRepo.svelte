@@ -1,11 +1,9 @@
 <script lang="ts">
   import TextInput from "./TextInput.svelte";
 
-  export let config: any;
+  export let config: Record<string, string>;
 
-  let accountKey: string;
-  let container: string;
-  let path: string;
+  $: config.RESTIC_REPOSITORY = `azure:${config.REPO_ENDPOINT}:${config.REPO_PATH}`;
 </script>
 
 <TextInput

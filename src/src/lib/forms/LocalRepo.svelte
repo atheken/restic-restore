@@ -1,7 +1,9 @@
 <script lang="ts">
   import TextInput from "./TextInput.svelte";
 
-  export let config: any;
+  export let config: Record<string, string>;
+
+  $: config.RESTIC_REPOSITORY = config.REPO_PATH;
 </script>
 
 <TextInput

@@ -1,10 +1,9 @@
 <script lang="ts">
   import TextInput from "./TextInput.svelte";
 
-  export let config: any;
+  export let config: Record<string, string>;
 
-  let remoteName = "myremote";
-  let remotePath = "/";
+  $: config.RESTIC_REPOSITORY = `rclone:${config.REPO_ENDPOINT}:${config.REPO_PATH}`;
 </script>
 
 <TextInput
@@ -24,6 +23,6 @@
 <div class="text-center italic text-neutral-500">
   Rclone may require additional variables in order to access the remote you
   specify. These should be of the form `<span class="font-mono text-red-400"
-    >RCLONE_{remoteName.toUpperCase()}_CONFIG_*</span
+    >RCLONE_{config.REPO_ENDPOINT?.toUpperCase() || "MYREMOTE"}_CONFIG_*</span
   >` , as per the rclone documentation.
 </div>

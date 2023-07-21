@@ -20,8 +20,8 @@ export default class Restic {
   private processMonitor?: Promise<any>;
   private lastAccess = new Date();
   private configPath: string;
-  private basePath = `${Restic.mountPath}${randomUUID()}`;
-  repoId: string;
+  private basePath = join(Restic.mountPath,randomUUID());
+  private repoId: string;
   private loadedConfig: Promise<{ type: string; env: Record<string, string> }>;
 
   static async ListRepos(): Promise<Repo[]> {

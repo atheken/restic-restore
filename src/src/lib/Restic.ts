@@ -11,18 +11,21 @@ import { Cryptor } from "./Cryptor";
 export default class Restic {
   private static basepath = process.env?.CONFIG_PATH || "/configs";
   private static cacheDir?: string = process.env?.RESTIC_CACHE_DIR || undefined;
+  private static RESTIC_MOUNT_REAP_INTERVAL = parseInt(
+    process.env?.RESTIC_MOUNT_REAP_INTERVAL || "600"
+  );
   private static mountPath: string =
     process.env?.RESTIC_MOUNT_DIR || "/tmp/restic-mount/";
   private static repos = new Map<string, Restic>();
   private processMonitor?: Promise<any>;
+  private lastAccess = new Date();
   private configPath: string;
   private basePath = `${Restic.mountPath}${randomUUID()}`;
   repoId: string;
   private loadedConfig: Promise<{ type: string; env: Record<string, string> }>;
 
   static async ListRepos(): Promise<Repo[]> {
-    let readdir = promisify(fs.readdir);
-    let files = await readdir(Restic.basepath);
+    let files = await fs.promises.readdir(Restic.basepath);
 
     return files.map((k) => {
       return { Id: k } as Repo;
@@ -62,6 +65,7 @@ export default class Restic {
       // There is already a launched mount process, we wait for it to become ready, or to fail.
       await currentMount;
     } else {
+      this.lastAccess = new Date();
       // if this instance doesn't have a mount process, we create one:
       await fs.promises.mkdir(this.basePath, { recursive: true });
       let mountedProcess = true;
@@ -101,7 +105,7 @@ export default class Restic {
       }).on("exit", async () => {
         mountedProcess = false;
         this.processMonitor = undefined;
-        await fs.promises.rmdir(this.basePath, { recursive: true });
+        await fs.promises.rm(this.basePath, { recursive: true });
         process.off("SIGINT", handleProcessExit);
       });
 
@@ -120,6 +124,21 @@ export default class Restic {
         );
       });
 
+      //Set an interval to check to see if the repo has been accessed in the last 10 minutes, and if not, shut it down.
+      let intervalId = setInterval(async () => {
+        //We want to completely drop the repo out of memory so that it doesn't get reused.
+        Restic.repos.delete(this.repoId);
+        let lastAccess = (Date.now() - this.lastAccess.getTime()) / 1000;
+        if (lastAccess >= Restic.RESTIC_MOUNT_REAP_INTERVAL) {
+          clearInterval(intervalId);
+          process.stdout.write(
+            `Shutting down mount for '${this.repoId}' due to inactivity.`
+          );
+          p.kill("SIGINT");
+          await p;
+        }
+      }, 30 * 1000);
+
       this.processMonitor = filesAvailable;
       await filesAvailable;
     }
@@ -132,6 +151,7 @@ export default class Restic {
    */
   async List(path: string = ""): Promise<FileStat[]> {
     await this.mount();
+    this.lastAccess = new Date();
     let lspath = join(this.basePath, path, "/");
     let results = await fs.promises.readdir(lspath);
     return await Promise.all(
@@ -155,6 +175,9 @@ export default class Restic {
     type: "dir" | "file",
     archiveType: "tar" | "tar.gz" | "zip" = "tar.gz"
   ): Promise<Readable> {
+    await this.mount();
+    this.lastAccess = new Date();
+
     let task: ChildProcessWithoutNullStreams;
 
     if (type == "dir") {

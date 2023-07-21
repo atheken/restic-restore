@@ -4,6 +4,7 @@ SHELL ["/bin/bash", "-c" ]
 RUN npm install -g tsx typescript vite
 ENV SHELL=/bin/bash
 ENV RESTIC_CACHE_DIR=/restic-cache
+ENV RESTIC_MOUNT_REAP_INTERVAL=120
 VOLUME /restic-cache
 VOLUME /configs
 VOLUME /data

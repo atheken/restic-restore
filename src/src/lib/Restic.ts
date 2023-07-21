@@ -20,7 +20,7 @@ export default class Restic {
   private processMonitor?: Promise<any>;
   private lastAccess = new Date();
   private configPath: string;
-  private basePath = join(Restic.mountPath,randomUUID());
+  private basePath = join(Restic.mountPath, randomUUID());
   private repoId: string;
   private loadedConfig: Promise<{ type: string; env: Record<string, string> }>;
 
@@ -127,9 +127,9 @@ export default class Restic {
       //Set an interval to check to see if the repo has been accessed in the last 10 minutes, and if not, shut it down.
       let intervalId = setInterval(async () => {
         //We want to completely drop the repo out of memory so that it doesn't get reused.
-        Restic.repos.delete(this.repoId);
         let lastAccess = (Date.now() - this.lastAccess.getTime()) / 1000;
         if (lastAccess >= Restic.RESTIC_MOUNT_REAP_INTERVAL) {
+          Restic.repos.delete(this.repoId);
           clearInterval(intervalId);
           process.stdout.write(
             `Shutting down mount for '${this.repoId}' due to inactivity.`

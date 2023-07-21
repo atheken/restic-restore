@@ -11,7 +11,9 @@
   let repoid = derived(page, (p) => p.params.repoid);
   let path = derived(page, (p) => p.params.path);
   let pathname = derived(page, (p) => {
-    let result = p.url.pathname.split("/").filter((k) => k.trim() != "");
+    let result = decodeURIComponent(p.url.pathname)
+      .split("/")
+      .filter((k) => k.trim() != "");
     result.shift();
     return result;
   });

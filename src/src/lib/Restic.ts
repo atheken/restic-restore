@@ -84,15 +84,19 @@ export default class Restic {
         env: Object.assign(env, addedProps),
       });
 
-      process.on("SIGINT", () => {
+      let handleProcessExit = () => {
         if (this.mountedProcess) p.kill("SIGINT");
-      });
+      };
+
+      process.on("SIGINT", handleProcessExit);
 
       p.on("error", () => {
+        p.stdout.pipe(process.stdout);
         p.stderr.pipe(process.stderr);
         this.mountedProcess = false;
       }).on("exit", () => {
         this.mountedProcess = false;
+        process.off("SIGINT", handleProcessExit);
       });
 
       let filesAvailable = new Promise(async (res, rej) => {
@@ -105,7 +109,9 @@ export default class Restic {
           }
           await sleep(1000);
         } while (this.mountedProcess);
-        rej(`The repository '${this.repoId}' did not mount before restic exited. This can happen if the browser session ends prematurely, or there a configuration error.`);
+        rej(
+          `The repository '${this.repoId}' did not mount before restic exited. This can happen if the browser session ends prematurely, or there a configuration error.`
+        );
       });
 
       await filesAvailable;

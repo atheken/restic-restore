@@ -14,20 +14,18 @@
   $: setRepoBrowsePath($page.url.pathname);
 
   async function loadFiles(): Promise<FileStat[]> {
-    let req = fetch(`${base}/api/list/${$repoid}/${$path}`);
-
     try {
-      let response = await req;
+      let response = await fetch(`${base}/api/list/${$repoid}/${$path}`);
       return (await response.json()) as FileStat[];
     } catch (err) {
       goto(authUrl($repoid, $page.url.pathname));
-      return [];
+      throw "The file list is not currently available.";
     }
   }
 </script>
 
 <div class="w-full">
-  {#key $pathname}
+  {#key $page.url.pathname}
     {#await loadFiles()}
       loading files...
     {:then files}

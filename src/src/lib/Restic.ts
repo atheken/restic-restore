@@ -14,7 +14,7 @@ export default class Restic {
   private static mountPath: string =
     process.env?.RESTIC_MOUNT_DIR || "/tmp/restic-mount/";
   private static repos = new Map<string, Restic>();
-  private mountedProcess = false;
+  private processMonitor?: Promise<any>;
   private configPath: string;
   private basePath = `${Restic.mountPath}${randomUUID()}`;
   repoId: string;
@@ -47,7 +47,7 @@ export default class Restic {
     this.configPath = path.join(Restic.basepath, repoId);
     this.ensureConfig();
 
-    this.loadedConfig = Restic.DecodeRepo(repoId, key);
+    this.loadedConfig = Restic.DecodeRepoConfiguration(repoId, key);
   }
 
   private ensureConfig() {
@@ -56,12 +56,15 @@ export default class Restic {
   }
 
   private async mount() {
-    if (!this.mountedProcess) {
+    let currentMount = this.processMonitor;
+
+    if (currentMount) {
+      // There is already a launched mount process, we wait for it to become ready, or to fail.
+      await currentMount;
+    } else {
+      // if this instance doesn't have a mount process, we create one:
       await fs.promises.mkdir(this.basePath, { recursive: true });
-
-      //listen for files in the specified path.
-
-      this.mountedProcess = true;
+      let mountedProcess = true;
 
       let { env, type } = await this.loadedConfig;
       let addedProps: Record<string, string> = {
@@ -86,7 +89,7 @@ export default class Restic {
       });
 
       let handleProcessExit = () => {
-        if (this.mountedProcess) p.kill("SIGINT");
+        if (mountedProcess) p.kill("SIGINT");
       };
 
       process.on("SIGINT", handleProcessExit);
@@ -95,9 +98,10 @@ export default class Restic {
         process.stdout.write(`The process exited with code: ${p.exitCode}.`);
         p.stdout.pipe(process.stdout);
         p.stderr.pipe(process.stderr);
-        this.mountedProcess = false;
-      }).on("exit", () => {
-        this.mountedProcess = false;
+      }).on("exit", async () => {
+        mountedProcess = false;
+        this.processMonitor = undefined;
+        await fs.promises.rmdir(this.basePath, { recursive: true });
         process.off("SIGINT", handleProcessExit);
       });
 
@@ -110,16 +114,22 @@ export default class Restic {
             return;
           }
           await sleep(1000);
-        } while (this.mountedProcess);
+        } while (mountedProcess);
         rej(
           `The repository '${this.repoId}' did not mount before restic exited. This can happen if the browser session ends prematurely, or there a configuration error.`
         );
       });
 
+      this.processMonitor = filesAvailable;
       await filesAvailable;
     }
   }
 
+  /**
+   * Lists the files for the specified path.
+   * @param path The path for which to list files.
+   * @returns
+   */
   async List(path: string = ""): Promise<FileStat[]> {
     await this.mount();
     let lspath = join(this.basePath, path, "/");
@@ -162,16 +172,28 @@ export default class Restic {
     return task.stdout;
   }
 
+  /**
+   * Check to see if the specified key can unlock the repo config.
+   * @param repo The repo id to validate.
+   * @param key The key to validate
+   * @returns True if success, false if failure.
+   */
   static async ValidateKey(repo: string, key: string): Promise<boolean> {
     try {
-      let result = await this.DecodeRepo(repo, key);
+      await this.DecodeRepoConfiguration(repo, key);
       return true;
     } catch (err) {
       return false;
     }
   }
 
-  private static async DecodeRepo(
+  /**
+   * Reads the repository configuration from disk and decodes it using the specified key.
+   * @param name The name of the repo for which to read.
+   * @param key The key of the repo to use to decode the config.
+   * @returns
+   */
+  private static async DecodeRepoConfiguration(
     name: string,
     key: string
   ): Promise<{ type: string; env: Record<string, string> }> {
@@ -179,38 +201,39 @@ export default class Restic {
     if (!fs.existsSync(storagePath)) {
       throw "The repo specified does not exist. Please check to make sure the configuration is still available.";
     } else {
-      try {
-        let file = JSON.parse(
-          await fs.promises.readFile(storagePath, "utf8")
-        ) as CryptedFile;
+      // we only want to read the file off the disk once per launch:
+      const fileContents = await fs.promises.readFile(storagePath, "utf8");
+      let file = JSON.parse(fileContents) as CryptedFile;
 
-        let keyringLookup = new Cryptor(key, file.iv, file.algorithm);
+      let keyringLookup = new Cryptor(key, file.iv, file.algorithm);
 
-        for (var { name, key } of file.keys) {
-          try {
-            let payloadLookup = new Cryptor(
-              await keyringLookup.DecryptString(key),
-              file.iv,
-              file.algorithm
-            );
+      for (var { name, key } of file.keys) {
+        try {
+          let payloadLookup = new Cryptor(
+            await keyringLookup.DecryptString(key),
+            file.iv,
+            file.algorithm
+          );
 
-            let payload = await payloadLookup.DecryptString(file.payload);
-            let env = JSON.parse(payload) as Record<string, string>;
+          let payload = await payloadLookup.DecryptString(file.payload);
+          let env = JSON.parse(payload) as Record<string, string>;
 
-            return { type: file.type, env };
-          } catch {
-            process.stdout.write(
-              `Attempted to decrypt the '${name}' repo using the '${name}', but was not successful.`
-            );
-          }
+          return { type: file.type, env };
+        } catch {
+          process.stdout.write(
+            `Attempted to decrypt the '${name}' repo using the '${name}', but was not successful.`
+          );
         }
-        throw "The specified key cannot unlock the repo.";
-      } catch (err) {
-        throw err;
       }
+      // this can only be reached if the above loop does not return early.
+      throw "The specified key cannot unlock the repo.";
     }
   }
 
+  /**
+   * Saves a new repo configuration with the specified options.
+   * @param options
+   */
   static async SaveRepo(options: CreateRepoRequest) {
     let storagePath = join(Restic.basepath, options.name);
     if (fs.existsSync(storagePath)) {

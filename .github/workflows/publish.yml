@@ -34,8 +34,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: ./Dockerfile
           push: true
-          build-args: |
-            VERSION=${{ env.GITHUB_SHA }}
+          build-args: VERSION=${{ env.GITHUB_SHA }}
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:dev
       - name: Build and push
         uses: docker/build-push-action@v4
@@ -46,5 +45,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:latest,${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:${{ github.ref_name }}
-          build-args: |
-            VERSION=${{ env.GITHUB_SHA }}
+          build-args: VERSION=${{ env.GITHUB_SHA }}

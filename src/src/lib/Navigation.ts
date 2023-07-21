@@ -21,13 +21,16 @@ export function setPath(prependHome: boolean, ...path: PathItem[]) {
 }
 
 export function setRepoBrowsePath(currentPath: string) {
-  let segments = decodeURIComponent(currentPath).split("/");
+  let segments = decodeURIComponent(currentPath.replace(/(\/$)/, "")).split(
+    "/"
+  );
 
   //The current path will include the `${base}/app/r/` route, and this is required to get the proper path here.
   let prefix = [];
   while (segments.length > 0) {
-    prefix.unshift(segments.shift());
-    if (segments[0] == "r") {
+    let current = segments.shift();
+    prefix.push(current);
+    if (current == "r") {
       break;
     }
   }

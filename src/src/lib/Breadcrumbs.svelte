@@ -13,9 +13,13 @@
   <ol
     class="flex flex-wrap items-center gap-1 text-sm text-gray-600 p-2 border-b-4"
   >
-    {#each $crumbs as c}
+    {#each $crumbs as c, i}
       <li class="after:content-['/'] last:after:content-['']">
-        <a class="no-underline" href={c.link}>{c.name}</a>
+        {#if $crumbs.length - 1 > i}
+          <a class="no-underline" href={c.link}>{c.name}</a>
+        {:else}
+          {c.name}
+        {/if}
       </li>
     {/each}
   </ol>

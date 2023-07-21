@@ -27,11 +27,13 @@
 <div class="w-full">
   {#key $page.url.pathname}
     {#await loadFiles()}
-      loading files...
+      <div class="text-center text-neutral-500 italic p-8 animate-pulse">
+        Loading files...
+      </div>
     {:then files}
       {#if files.length == 0}
         <div class="text-center text-neutral-500 italic p-8">
-          😬 There don't seem to be any any files in this directory.
+          😬 There don't seem to be any any files in this path.
         </div>
       {:else}
         <div class="overflow-x-auto">

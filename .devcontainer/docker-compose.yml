@@ -14,4 +14,4 @@ services:
     volumes:
       - ../:/data
       - ../configs:/configs
-      - /tmp/restic-cache:/restic-cache
+      - /tmp/restic-cache:/cache

@@ -2,6 +2,7 @@ import Restic from "$lib/Restic";
 import { Readable } from "stream";
 import type { RequestEvent } from "./$types";
 import { AuthorizeAccess } from "$lib/Helpers.server";
+import { json } from "@sveltejs/kit";
 
 export async function GET(req: RequestEvent): Promise<Response> {
   let {
@@ -38,18 +39,23 @@ export async function GET(req: RequestEvent): Promise<Response> {
 
   let stream = await repo.StreamPath(
     path.toString(),
-    type as "dir" | "file",
-    "tar.gz"
+    type as "file" | "tar" | "tar.gz" | "zip"
   );
-  let rs = Readable.toWeb(stream) as ReadableStream;
+  if (stream) {
+    let rs = Readable.toWeb(stream) as ReadableStream;
 
-  let res = new Response(rs);
+    let res = new Response(rs);
 
-  res.headers.set(
-    "Content-Disposition",
-    `attachment;filename="${attachmentName}"`
-  );
-  res.headers.set("Content-Type", contentType);
-
-  return res;
+    res.headers.set(
+      "Content-Disposition",
+      `attachment;filename="${attachmentName}"`
+    );
+    res.headers.set("Content-Type", contentType);
+    return res;
+  } else {
+    return json(
+      { success: false, message: "The requested path does not exist." },
+      { status: 404 }
+    );
+  }
 }

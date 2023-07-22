@@ -1,5 +1,6 @@
 import { createCipheriv, createDecipheriv, createHash } from "node:crypto";
 
+/** A class to simplify the encryption and decryption of strings (mainly ensuring consistent handling of encoding and decoding for serialization purposes) */
 export class Cryptor {
   private algorithm: string;
   private iv: Buffer;

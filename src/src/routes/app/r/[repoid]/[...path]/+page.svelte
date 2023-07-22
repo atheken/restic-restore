@@ -90,7 +90,7 @@
                   >
                     <a
                       href={`${base}/api/download/${
-                        f.isDirectory ? "dir" : "file"
+                        f.isDirectory ? "tar.gz" : "file"
                       }/${$repoid}/${$path}/${f.name}`}>Download</a
                     >
                   </td>

@@ -24,14 +24,23 @@ export default class Restic {
   private repoId: string;
   private loadedConfig: Promise<{ type: string; env: Record<string, string> }>;
 
+  /**
+   * Get a list of all the repos in the configuration directory.
+   * @returns A list of configured repos.
+   */
   static async ListRepos(): Promise<Repo[]> {
     let files = await fs.promises.readdir(Restic.basepath);
-
     return files.map((k) => {
       return { Id: k } as Repo;
     });
   }
 
+  /**
+   * Returns a new or existing repository instance.
+   * @param repoId The repository for which to get an instance.
+   * @param key A valid access key to unlock the configs.
+   * @returns The repo, if it could be unlocked, or throws, otherwise.
+   */
   static async Access(repoId: string, key: string): Promise<Restic> {
     if (await this.ValidateKey(repoId, key)) {
       let repo = Restic.repos.get(repoId);
@@ -53,11 +62,17 @@ export default class Restic {
     this.loadedConfig = Restic.DecodeRepoConfiguration(repoId, key);
   }
 
+  /**
+   * Check to see if the config exists, and throw if it does not.
+   */
   private ensureConfig() {
     if (!fs.existsSync(this.configPath))
       throw `The specified repo '${this.repoId}' does not exist.`;
   }
 
+  /**
+   * Create and monitor a mount process for this repo.
+   */
   private async mount() {
     let currentMount = this.processMonitor;
 
@@ -170,29 +185,38 @@ export default class Restic {
     );
   }
 
+  /**
+   *
+   * @param path The directory or file that that is requested
+   * @param type The type of stream requested, either "file" (the raw file stream), or an archive type (required if the path is a directory)
+   * @returns The requested stream if it exists, or null if it does not.
+   */
   async StreamPath(
     path: string,
-    type: "dir" | "file",
-    archiveType: "tar" | "tar.gz" | "zip" = "tar.gz"
-  ): Promise<Readable> {
+    type: "file" | "tar" | "tar.gz" | "zip"
+  ): Promise<Readable | null> {
     await this.mount();
     this.lastAccess = new Date();
 
-    let task: ChildProcessWithoutNullStreams;
+    if (fs.existsSync(join(this.basePath, path))) {
+      let task: ChildProcessWithoutNullStreams;
 
-    if (type == "dir") {
-      task = spawn("/bin/tar", ["-cz", path], {
-        stdio: "pipe",
-        cwd: this.basePath,
-      });
+      if (type == "file") {
+        task = spawn("/bin/cat", [path], {
+          stdio: "pipe",
+          cwd: this.basePath,
+        });
+      } else {
+        task = spawn("/bin/tar", ["-cz", path], {
+          stdio: "pipe",
+          cwd: this.basePath,
+        });
+      }
+
+      return task.stdout;
     } else {
-      task = spawn("/bin/cat", [path], {
-        stdio: "pipe",
-        cwd: this.basePath,
-      });
+      return null;
     }
-
-    return task.stdout;
   }
 
   /**
@@ -203,7 +227,7 @@ export default class Restic {
    */
   static async ValidateKey(repo: string, key: string): Promise<boolean> {
     try {
-      await this.DecodeRepoConfiguration(repo, key);
+      await Restic.DecodeRepoConfiguration(repo, key);
       return true;
     } catch (err) {
       return false;
@@ -304,33 +328,65 @@ export default class Restic {
   }
 }
 
+/** The structure for the configuration file stored to disk */
 interface CryptedFile {
+  /** For future use, if the semantics of storing the files changes,
+   * the version will indicate what decoding algorithm/semantics to use
+   * to decode existing configs. */
   version: 1;
+  /** The IV used for encrypting the keys and payload. (A buffer stored as 'hex') */
   iv: string;
+  /** The algorithm used for encrypting the keys and the payload. (e.g. 'aes-256-cbc')*/
   algorithm: string;
+  /** The actual encrypted configuration (JSON that is encrypted to a buffer and seralized as 'hex') */
   payload: string;
+  /** An array of keys that can be used to decrypt the payload. Each of these have a name, and the 'key'
+   * property is encrypted using an access key that is provided by the user to unlock the repo. It's an array
+   * to support the rotation or addtion of keys for multiple users to be able to unlock a repo. */
   keys: KeyRingEntry[];
+  /**
+   * The type of repo (s3, local, rest, rclone, azure, etc..)
+   */
   type: string;
 }
 
+/**
+ * A named key that can be used to decrypt the repo.
+ * The key to decode the key here is provided by the user when they unlock a repo.
+ * This essentially ensures that no secrets are ever stored in plain text on the file system.
+ */
 interface KeyRingEntry {
+  /** A display name for the key */
   name: string;
+  /** A encryption key that is generated when a config is created, it is encrypted using a key supplied by the user during
+   * repo creation, and then it is stored in this property as a buffer serialized to 'hex'. */
   key: string;
 }
 
+/** Basic file information. */
 export interface FileStat {
   isDirectory: boolean;
+  /** Access time */
   atime: Date;
+  /** Modification time */
   mtime: Date;
+  /** Creation time */
   ctime: Date;
-  size: number;
+  /** The number of bytes (or null if unknown.) */
+  size: number | null;
+  /** Name of this node */
   name: string;
+  /** The parent directory for this node. */
   parent: string;
 }
 
 export interface CreateRepoRequest {
+  /** The main access key that will be used to decrypt the configuration file when the repo is accessed. */
   primaryKey: string;
+  /** The config that should be stored. This will be encrypted before being written to disk. */
   config: Map<string, string>;
+  /** The type of repo (e.g. s3, local, rest, rclone, azure, gs, swift, etc.) */
   type: string;
+  /** The name that will be used to identify this config on disk and in the interface. */
   name: string;
 }

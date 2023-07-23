@@ -29,10 +29,30 @@ export default class Restic {
    * @returns A list of configured repos.
    */
   static async ListRepos(): Promise<Repo[]> {
-    let files = await fs.promises.readdir(Restic.basepath);
-    return files.map((k) => {
-      return { Id: k } as Repo;
+    let files = await fs.promises.readdir(Restic.basepath, {
+      withFileTypes: true,
+      recursive: false,
     });
+    let intermediates = files
+      .filter((f) => f.isFile)
+      .map(async (k) => {
+        let f = JSON.parse(
+          await fs.promises.readFile(join(Restic.basepath, k.name), "utf-8")
+        ) as CryptedFile;
+
+        return { Id: k.name, type: f.type } as Repo;
+      });
+
+    let results: Repo[] = [];
+    await Promise.allSettled(intermediates);
+    for (var i of intermediates) {
+      try {
+        results.push(await i);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    return results;
   }
 
   /**

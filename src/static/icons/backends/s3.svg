@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 396 480" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-16,-16)">
+        <path d="M378,99L295,257L378,415L412,396L412,118L378,99Z" style="fill:rgb(226,84,68);fill-rule:nonzero;"/>
+        <path d="M378,99L212,118L127.5,257L212,396L378,415L378,99Z" style="fill:rgb(123,29,19);fill-rule:nonzero;"/>
+        <path d="M43,99L16,111L16,403L43,415L212,257L43,99Z" style="fill:rgb(88,21,13);fill-rule:nonzero;"/>
+        <path d="M42.637,98.667L212.224,145.778L212.224,372.444L42.637,415.111L42.637,98.667Z" style="fill:rgb(226,84,68);fill-rule:nonzero;"/>
+        <path d="M212.313,170.667L140.305,159.111L212.313,77.333L284.143,159.111L212.313,170.667Z" style="fill:rgb(88,21,13);fill-rule:nonzero;"/>
+        <path d="M284.143,159.111L212.224,170.844L140.305,159.111L140.305,77.333" style="fill:rgb(88,21,13);fill-rule:nonzero;"/>
+        <path d="M212.313,342.222L140.305,355.556L212.313,425.778L284.143,355.556L212.313,342.222Z" style="fill:rgb(88,21,13);fill-rule:nonzero;"/>
+        <path d="M212,16L140,54L140,159L212.224,138.667L212,16Z" style="fill:rgb(123,29,19);fill-rule:nonzero;"/>
+        <path d="M212.224,196.444L140.305,204.267L140.305,309.105L212.224,317.333L212.224,196.444Z" style="fill:rgb(123,29,19);fill-rule:nonzero;"/>
+        <path d="M212.224,373.333L140.305,355.3L140.305,458.363L212.224,496L212.224,373.333Z" style="fill:rgb(123,29,19);fill-rule:nonzero;"/>
+        <path d="M284.143,355.3L212.224,373.338L212.224,496L284.143,458.363L284.143,355.3Z" style="fill:rgb(226,84,68);fill-rule:nonzero;"/>
+        <path d="M212.224,196.444L284.143,204.267L284.143,309.105L212.224,317.333L212.224,196.444Z" style="fill:rgb(226,84,68);fill-rule:nonzero;"/>
+        <path d="M212,16L284,54L284,159L212,139L212,16Z" style="fill:rgb(226,84,68);fill-rule:nonzero;"/>
+    </g>
+</svg>

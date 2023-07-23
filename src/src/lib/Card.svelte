@@ -1,22 +1,17 @@
 <script lang="ts">
   export let link: string;
   export let title: string;
-  export let imgSrc: string | null = null;
 </script>
 
-<div class="rounded-xl border-2 border-gray-100 bg-white">
-  <div class="flex items-start gap-4 p-4 sm:p-6 lg:p-8">
-    {#if imgSrc}
-      <a href={link} class="block shrink-0">
-        <img src={imgSrc} alt={title} class="aspect-square" />
-      </a>
-    {/if}
-    <div class="w-full">
-      <div class="w-full font-medium sm:text-lg text-center">
-        <a href={link} class="underline-none hover:underline">
-          {title}
-        </a>
+<div
+  class="group border-[1px] hover:border-gray-500 border-gray-300 rounded-md bg-blue-50 hover:bg-blue-100 text-center"
+>
+  <a href={link} class="no-underline font-light text-gray-800">
+    <div class="grid gap-2 p-2 place-items-center w-full h-full">
+      <slot />
+      <div class="text-center">
+        {title}
       </div>
     </div>
-  </div>
+  </a>
 </div>

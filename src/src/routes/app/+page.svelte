@@ -8,7 +8,7 @@
 
   export let data: PageData;
 
-  onMount(() => setPath(true));
+  onMount(() => setPath(true, { name: "Repositories", link: null }));
 </script>
 
 <div class="w-full">
@@ -22,15 +22,19 @@
       </Card>
     {/each}
   </div>
-  <div
-    class="grid place-items-center text-center mt-2 no-underline w-1/3 p-2 rounded-md hover:bg-green-700 bg-green-400 text-white"
-  >
-    <a href="{base}/app/add" class="flex no-underline text-white">
-      <svg
-        use:inlineSvg={`${base}/icons/add.svg`}
-        class="fill-white h-[1.5em] grow-0"
-      />
-      <span>Add Repository</span>
+  <div class="m-2 grid place-items-center">
+    <a
+      class="group relative inline-flex items-center overflow-hidden rounded bg-green-600 px-8 py-3 text-white focus:outline-none focus:ring hover:bg-green-500"
+      href="{base}/app/add"
+    >
+      <span class="absolute">
+        <svg
+          use:inlineSvg={`${base}/icons/add.svg`}
+          class="stroke-none fill-current h-5 w-5 grow-0"
+        />
+      </span>
+
+      <span class="text-sm font-medium ms-6"> Add Repository </span>
     </a>
   </div>
 </div>

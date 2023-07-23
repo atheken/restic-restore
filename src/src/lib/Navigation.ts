@@ -3,7 +3,7 @@ import { writable } from "svelte/store";
 
 interface PathItem {
   name: string;
-  link: string;
+  link: string | null;
 }
 
 export let stack = writable<PathItem[]>();

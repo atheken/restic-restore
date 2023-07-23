@@ -9,7 +9,6 @@ RUN vite build
 
 FROM alpine:3.18
 RUN apk add -u nodejs npm rclone restic bash openssh fuse fuse3
-ARG VERSION=unknown
 COPY --from=build /data/build /app
 WORKDIR /app
 COPY ./src/package.json ./

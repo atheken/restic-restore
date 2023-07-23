@@ -37,6 +37,7 @@
         pattern=".+"
         bind:value={password}
         label="Access Key"
+        name="password"
       />
       <ActiveButton enabled={isValid} on:click={handleAuth}
         >Unlock `{repoid}`</ActiveButton

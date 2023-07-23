@@ -18,6 +18,7 @@ COPY ./src/package-lock.json ./
 RUN echo '; process.on("SIGINT", () => { process.exit(0) });' >> ./index.js
 RUN echo '; process.on("SIGTERM", () => { process.exit(0) });' >> ./index.js
 RUN npm i --omit dev
+ARG VERSION=${VERSION:-unknown}
 ENV NODE_ENV=production
 ENV RESTIC_CACHE_DIR=/cache
 ENV RESTIC_MOUNT_DIR=/tmp/restic-mount

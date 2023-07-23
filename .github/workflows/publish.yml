@@ -37,6 +37,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:dev
+          build-args: VERSION=${{ github.sha }}
       - name: Build and push
         uses: docker/build-push-action@v4
         if: ${{ github.ref_type  == 'tag' }}
@@ -48,4 +49,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:latest,${{ secrets.DOCKERHUB_USERNAME }}/restic-restore:${{ github.ref_name }}
-          #build-args: VERSION=${{ github.sha }}
+          build-args: VERSION=${{ github.sha }}

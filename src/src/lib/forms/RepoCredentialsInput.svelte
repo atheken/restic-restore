@@ -20,5 +20,6 @@
   label="Access Key"
   bind:value={primaryKey}
   type="password"
+  name="password"
   validationMessage="The access key must be at least 10 non-whitespace characters."
 />

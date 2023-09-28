@@ -8,15 +8,20 @@
   export let type: "text" | "password" | "textarea" = "text";
   export let required = true;
   export let validationMessage = "";
+  export let name: string | null = "";
+  let element: HTMLElement;
 </script>
 
 <div>
   {#if type == "text"}
-    <label for="name" class="block text-sm after:content-[':']">{label}</label>
+    <label for={element?.id} class="block text-sm after:content-[':']"
+      >{label}</label
+    >
     <input
+      bind:this={element}
       autocomplete="off"
       {required}
-      id="name"
+      {name}
       bind:value
       type="text"
       {placeholder}
@@ -24,10 +29,13 @@
       class="peer w-full border-neutral-300 rounded-md invalid:border-red-400 placeholder:italic placeholder:text-neutral-300 {clazz}"
     />
   {:else if type == "password"}
-    <label for="name" class="block text-sm after:content-[':']">{label}</label>
+    <label for={element?.id} class="block text-sm after:content-[':']"
+      >{label}</label
+    >
     <input
+      bind:this={element}
       autocomplete="off"
-      id="name"
+      {name}
       bind:value
       type="password"
       {placeholder}
@@ -36,10 +44,14 @@
       class="peer w-full border-neutral-300 rounded-md invalid:border-red-400 placeholder:text-neutral-300 {clazz}"
     />
   {:else if type == "textarea"}
-    <label for="name" class="block text-sm after:content-[':']">{label}</label>
+    <label for={element?.id} class="block text-sm after:content-[':']"
+      >{label}</label
+    >
     <textarea
+      bind:this={element}
+      {name}
       autocomplete="off"
-      id="name"
+      id={name}
       {required}
       {placeholder}
       bind:value

@@ -15,7 +15,7 @@
   >
     {#each $crumbs as c, i}
       <li class="after:content-['/'] last:after:content-['']">
-        {#if $crumbs.length - 1 > i}
+        {#if $crumbs.length - 1 > i && c.link}
           <a class="no-underline" href={c.link}>{c.name}</a>
         {:else}
           {c.name}

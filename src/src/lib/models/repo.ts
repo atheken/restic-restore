@@ -1,3 +1,4 @@
 export default interface Repo {
-    Id: string
+  Id: string;
+  type: string;
 }

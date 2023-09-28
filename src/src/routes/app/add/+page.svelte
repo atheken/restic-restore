@@ -103,7 +103,7 @@
           { label: "SFTP", value: "sftp" },
           { label: "S3-Compatible", value: "s3" },
           { label: "Azure", value: "azure" },
-          { label: "Google Cloud Platform", value: "gcp" },
+          { label: "Google Cloud Platform", value: "gs" },
           { label: "OpenStack Swift", value: "swift" },
           { label: "RClone", value: "rclone" },
         ]}
@@ -115,7 +115,7 @@
         <LocalRepo bind:config />
       {:else if backendType == "rest"}
         <RestRepo bind:config />
-      {:else if backendType == "gcp"}
+      {:else if backendType == "gs"}
         <GoogleCloudRepo bind:config />
       {:else if backendType == "azure"}
         <AzureRepo bind:config />
